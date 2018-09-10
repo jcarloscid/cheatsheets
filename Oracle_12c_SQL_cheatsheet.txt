@@ -1,0 +1,883 @@
+   
+   .----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .----------------. 
+   | .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
+   | |     ____     | || |  _______     | || |      __      | || |     ______   | || |   _____      | || |  _________   | |
+   | |   .'    `.   | || | |_   __ \    | || |     /  \     | || |   .' ___  |  | || |  |_   _|     | || | |_   ___  |  | |
+   | |  /  .--.  \  | || |   | |__) |   | || |    / /\ \    | || |  / .'   \_|  | || |    | |       | || |   | |_  \_|  | |
+   | |  | |    | |  | || |   |  __ /    | || |   / ____ \   | || |  | |         | || |    | |   _   | || |   |  _|  _   | |
+   | |  \  `--'  /  | || |  _| |  \ \_  | || | _/ /    \ \_ | || |  \ `.___.'\  | || |   _| |__/ |  | || |  _| |___/ |  | |
+   | |   `.____.'   | || | |____| |___| | || ||____|  |____|| || |   `._____.'  | || |  |________|  | || | |_________|  | |
+   | |              | || |              | || |              | || |              | || |              | || |              | |
+   | '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
+   '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'    
+                                                                                                             
+                                                                                                             
+   1111111    222222222222222                                SSSSSSSSSSSSSSS      QQQQQQQQQ     LLLLLLLLLLL             
+   1::::::1   2:::::::::::::::22                            SS:::::::::::::::S   QQ:::::::::QQ   L:::::::::L             
+   1:::::::1   2::::::222222:::::2                          S:::::SSSSSS::::::S QQ:::::::::::::QQ L:::::::::L             
+   111:::::1   2222222     2:::::2                          S:::::S     SSSSSSSQ:::::::QQQ:::::::QLL:::::::LL             
+   1::::1               2:::::2     cccccccccccccccc     S:::::S            Q::::::O   Q::::::Q  L:::::L               
+   1::::1               2:::::2   cc:::::::::::::::c     S:::::S            Q:::::O     Q:::::Q  L:::::L               
+   1::::1            2222::::2   c:::::::::::::::::c      S::::SSSS         Q:::::O     Q:::::Q  L:::::L               
+   1::::l       22222::::::22   c:::::::cccccc:::::c       SS::::::SSSSS    Q:::::O     Q:::::Q  L:::::L               
+   1::::l     22::::::::222     c::::::c     ccccccc         SSS::::::::SS  Q:::::O     Q:::::Q  L:::::L               
+   1::::l    2:::::22222        c:::::c                         SSSSSS::::S Q:::::O     Q:::::Q  L:::::L               
+   1::::l   2:::::2             c:::::c                              S:::::SQ:::::O  QQQQ:::::Q  L:::::L               
+   1::::l   2:::::2             c::::::c     ccccccc                 S:::::SQ::::::O Q::::::::Q  L:::::L         LLLLLL
+   111::::::1112:::::2       222222c:::::::cccccc:::::c     SSSSSSS     S:::::SQ:::::::QQ::::::::QLL:::::::LLLLLLLLL:::::L
+   1::::::::::12::::::2222222:::::2 c:::::::::::::::::c     S::::::SSSSSS:::::S QQ::::::::::::::Q L::::::::::::::::::::::L
+   1::::::::::12::::::::::::::::::2  cc:::::::::::::::c     S:::::::::::::::SS    QQ:::::::::::Q  L::::::::::::::::::::::L
+   11111111111122222222222222222222    cccccccccccccccc      SSSSSSSSSSSSSSS        QQQQQQQQ::::QQLLLLLLLLLLLLLLLLLLLLLLLL
+   																						Q:::::Q                       
+   																						QQQQQQ                       
+   
+
+    e88~-_  888                            d8          888                            d8   
+   d888   \ 888-~88e  e88~~8e    /~~~8e  _d88__  d88~\ 888-~88e  e88~~8e   e88~~8e  _d88__ 
+   8888     888  888 d888  88b       88b  888   C888   888  888 d888  88b d888  88b  888   
+   8888     888  888 8888__888  e88~-888  888    Y88b  888  888 8888__888 8888__888  888   
+   Y888   / 888  888 Y888    , C888  888  888     888D 888  888 Y888    , Y888    ,  888   
+    "88_-~  888  888  "88___/   "88_-888  "88_/ \_88P  888  888  "88___/   "88___/   "88_/ 
+                                                                                          
+
+DOCUMENTATION
+=============
+
+Oracle Database documentation online:
+https://docs.oracle.com/en/database/
+
+By default latest version. But version can be selected at the product level.
+
+Oracle Learning Library (videos, tutorials, ...):
+http://www.oracle.com/goto/oll
+
+GENERAL SELECT STATEMENT 
+========================
+
+SELECT [ALL | DISTINCT] [table.]column | [alias.]column | expression | group_function [[AS] column_alias] [, ...]
+FROM table1 [alias1]
+	[NATURAL [INNER] JOIN table2 [alias2]] |
+	[[INNER] JOIN table2 [alias2] USING (column_name [, ...])] |
+	[[INNER] JOIN table2 [alias2] ON join_condition] |
+	[{LEFT | RIGHT | FULL} OUTER JOIN table2 [alias2] ON (join_condition)] | 
+	[CROSS JOIN table2 [alias2]] |
+	[, table2 [alias2]] ...
+[WHERE filter_join_condition]
+[GROUP BY group_by_expression]
+[HAVING group_condition]
+[ORDER BY order_by_expression];
+
+COMPARISON OPERATORS
+====================
+
+Operator 			Meaning
+--------------------------------------------------------------
+= 					Equal to
+> 					Greater than
+>= 					Greater than or equal to
+< 					Less than
+<= 					Less than or equal to
+<> != ^=			Not equal to
+BETWEEN <L> AND <U> Between two values (inclusive)
+[NOT] IN (set)		Match any[/none] of a list of values
+LIKE 				Match a character pattern (% _)
+  (escaping % or _) WHERE job_id LIKE 'SA\_%' ESCAPE '\'
+IS [NOT] NULL 		Is [not] a null value
+[NOT] EXISTS		For subqueries, the result set is [not] non-empty
+
+LOGICAL OPERATORS
+=================
+
+Operator            Meaning
+------------------------------------------------------------------------
+AND 				Returns TRUE if both component conditions are true
+OR 					Returns TRUE if either component condition is true
+NOT 				Returns TRUE if the condition is false
+
+OPERATORS RULES OF PRECEDENCE
+=============================
+
+Operators of the same priority are evaluated from left to right.
+
+Order Operator
+------------------------------------------
+  0   * / Arithmetic operators
+  1   + - Arithmetic operators
+  2   Concatenation operator (||)
+  3   Comparison conditions
+  4   IS [NOT] NULL, LIKE, [NOT] IN
+  5   [NOT] BETWEEN
+  6   Not equal to
+  7   NOT logical operator
+  8   AND logical operator
+  9   OR logical operator
+  
+  
+LIMITING THE NUMBER OF ROWS RETURNED
+====================================
+An ORDER BY clause is required if you want to sort the rows for consistency.
+  
+[OFFSET offset { ROW | ROWS }]
+[FETCH { FIRST | NEXT } [{ row_count | percent PERCENT}] { ROW | ROWS } { ONLY | WITH TIES }]
+
+Sample 1: SELECT ... ORDER BY ... FETCH FIRST 10 ROWS ONLY
+Sample 2: SELECT ... ORDER BY ... OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY
+
+
+SUBSTITUTION VARIABLES
+======================
+
+&VAR   	--> Always prompt for a value (unless defined up-front)
+&&VAR	--> Variable is reused and only prompted once (like using DEFINE)
+
+DEFINE	--> Set a value for a variable so the user is never prompted. Once defined, the value is kept with the session. 
+			DEFINE VAR = value
+UNDEFINE --> Unset the variable. User will be prompted when &VAR or &&VAR appear
+			UNDEFINE VAR
+
+SET VERIFY ON/OFF --> To display the query before and after the variable substitution. Usefull for debugging.
+
+
+CHARACTER FUNCTIONS
+===================
+
+Function 						Purpose
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LOWER(column|expression) 		Converts to lowercase
+UPPER(column|expression) 		Converts to uppercase
+INITCAP(column|expression) 		Converts to uppercase for the first letter of each word; all other letters in lowercase
+CONCAT(column1|expression1, 	Equivalent to concatenation operator (||)
+       column2|expression2)			
+SUBSTR(column|expr, m [,n])		Returns specified characters from character value starting at character position m, n characters long (If m is negative, the count starts from the end of the character value. If n is omitted, all characters to the end of the string are returned.)
+LENGTH(column|expression) 		Returns the number of characters in the expression
+INSTR(column|expression,		Returns the numeric position of a named string. Optionally, you can provide a position m to start searching, and the occurrence n of the string. m and n Default to 1, meaning start the search at the beginning of the string and report the first occurrence. If not found, zero is returned.
+      ’string’ [,m [,n]])			
+LPAD(column|expression, n,		Returns an expression left-padded to length of n characters with a character expression
+     'string')						
+RPAD(column|expression, n,  	Returns an expression right-padded to length of n characters with a character expression
+     'string') 						
+TRIM([LEADING|TRAILING|BOTH]	Enables you to trim leading or trailing characters (or both) from a character string. Samples: 
+     'trim_character' FROM 		TRIM('   tech   ')
+	 column|expression)			TRIM(LEADING '0' FROM '000123')	
+REPLACE(text,					Searches a text expression for a character string and, if found, replaces it with a specified replacement string. If replacement string is ommited, all ocurrences of search string are removed.
+        search_string				
+      [,replacement_string])
+
+NUMBER FUNCTIONS
+================
+
+Function 						Purpose
+---------------------------------------------------------------------------------
+ROUND(column|expression, n) 	Rounds the column, expression, or value to n decimal places or, if n is omitted, no decimal places (If n is negative, numbers to the left of decimal point are rounded
+TRUNC(column|expression, n) 	Truncates the column, expression, or value to n decimal places or, if n is omitted, n defaults to zero
+MOD(m, n) 						Returns the remainder of m divided by n
+
+DATES MANIPULATION FUNCTIONS
+============================
+
+Default date format: DD-MON-RR
+
+Function 						Purpose
+---------------------------------------------------------------------------------
+SYDATE							Current system date using server time zone
+CURRENT_DATE					Current system date using user session time zone (SESSIONTIMEZONE)
+CURRENT_TIMESTAMP				Current system date and time using user session time zone 
+MONTHS_BETWEEN(date1, date2)	Number of months between two dates
+ADD_MONTHS(date, n)				Add calendar months to date
+NEXT_DAY(date, 'day') 			Date of the next occurrence of the specified day
+LAST_DAY(date) 					Last day of the month
+ROUND(date [,'fmt']) 			Round date. Format is DAY by default
+TRUNC(date [,'fmt']) 			Truncate date. Format is DAY by default
+
+DATA TYPE CONVERSION FUNCTIONS
+==============================
+
+Function 								Purpose
+---------------------------------------------------------------------------------
+TO_CHAR(number|date[,fmt[,nlsparams]])	Converts to VARCHAR2
+TO_NUMBER(char[,fmt[,nlsparams]])		Converts to number
+TO_DATE(char[,fmt[,nlsparams]])			Converts to DATE (default fmt DD-MON-YY)
+
+
+-------------||| fmt string descriptors for dates |||-------------
+
+Element 	Description
+------------------------------------------------------------------
+YYYY 		Full year in numbers
+YEAR 		Year spelled out (in English)
+MM 			Two-digit value for the month
+MONTH 		Full name of the month
+MON 		Three-letter abbreviation of the month
+DY 			Three-letter abbreviation of the day of the week
+DAY 		Full name of the day of the week
+DD 			Numeric day of the month
+AM or PM 	Meridian indicator
+A.M. / P.M.	Meridian indicator with periods
+HH or HH12 	12 hour format
+HH24 		24 hour format
+MI 			Minute (0–59)
+SS 			Second (0–59)
+SSSSS 		Seconds past midnight (0–86399)
+/ . , 		Punctuation is reproduced in the result
+“of the” 	Quoted string is reproduced in the result
+TH 			Ordinal number (for example, DDTH for 4TH)
+SP 			Spelled-out number (for example, DDSP for FOUR)
+SPTH / THSP Spelled-out ordinal numbers (for example, DDSPTH for FOURTH)
+fm			Remove padded blanks or to suppress leading zeros
+fx 			Specifies the exact match for the character argument and date format model
+
+Sample:	TO_CHAR('12-OCT-18', 'DD "of" MONTH') --> '12 of OCTOBER'
+		TO_CHAR(07-JUN-11, 'fmDD Month YYYY fmHH:MI:SS AM') --> '7 June 2011 12:00:00 AM'
+
+-------------||| fmt string descriptors for numbers |||-------------
+
+Element Description
+---------------------------------------------------------------------------------------
+9 		Numeric position (number of 9s determine display width)
+0 		Display leading zeros 
+$ 		Floating dollar sign 
+L 		Floating local currency symbol 
+D 		Returns the decimal character in the specified position. The default is a period (.)
+. 		Decimal point in position specified 
+G 		Returns the group (thousands) separator in the specified position. 
+, 		Comma in position specified 
+MI 		Minus signs to right (negative values) 
+PR 		Parenthesize negative numbers 
+EEEE 	Scientific notation (format must specify four Es) 
+U 		Returns in the specified position the “Euro” (or other) dual currency
+V 		Multiply by 10 n times (n = number of 9s after V) 
+S 		Returns the negative or positive value (sign on the left)
+B 		Display zero values as blank, not 0 
+
+Use either . and , or D and G, but do not mix them.
+
+NULL MANIPULATION FUNCTIONS
+===========================
+
+Function 					Description
+--------------------------------------------------------------------------------------------------------------------------------------------
+NVL(expr1, expr2) 			Converts a null value to an actual value. Data types must match.
+NVL2(expr1, expr2, expr3) 	If expr1 is not null, NVL2 returns expr2. If expr1 is null, NVL2 returns expr3. 
+NULLIF(expr1, expr2)		Compares two expressions and returns null if they are equal; returns the first expression if they are not equal
+COALESCE(expr1, ..., exprn)	Returns the first non-null expression in the expression list
+
+CONDITIONAL EXPRESSIONS
+=======================
+CASE expr 
+	WHEN comparison_expr1 THEN return_expr1
+   [WHEN comparison_expr2 THEN return_expr2
+	WHEN comparison_exprn THEN return_exprn 
+	...
+	ELSE else_expr]
+END
+
+CASE
+	WHEN condition1 THEN return_expr1
+   [WHEN condition2 THEN return_expr2
+	WHEN condition3 THEN return_expr3
+	...
+	ELSE else_expr]
+END
+
+DECODE(col|expression, 
+  	   search1, result1
+	[, search2, result2 ...]
+	[, default])
+
+GROUP FUNCTIONS
+===============	
+
+Function 					Description
+------------------------------------------------------------------------------------------------
+------- ONLY FOR NUMERIC DATA TYPES ------------------------------------------------------------
+AVG([DISTINCT|ALL]n) 		Average value of n, ignoring null values
+STDDEV([DISTINCT|ALL]n)		Standard deviation of n, ignoring null values
+VARIANCE([DISTINCT|ALL]n) 	Variance of n, ignoring null values	
+SUM([DISTINCT|ALL]n) 		Sum values of n, ignoring null values
+------- NUMERIC, DATES AND CHARACTER DATA TYPES ------------------------------------------------
+MAX([DISTINCT|ALL]expr)		Maximum value of expr, ignoring null values
+MIN([DISTINCT|ALL]expr)		Minimum value of expr, ignoring null values
+LISTAGG 					Aggregates data on a several row as a single field (see sample)
+COUNT([DISTINCT|ALL]expr)	Number of rows where expr evaluates to something other than null 
+COUNT(*)					Count all selected rows, including duplicates and rows with nulls
+
+-- LISTAGG sample
+-- Generate a list of people working on each department
+  SELECT DISTINCT department_id,
+         LISTAGG(last_name, '; ') 
+            WITHIN GROUP (ORDER BY last_name) 
+            OVER (PARTITION BY department_id) AS DEPT_STAFF_LIST
+    FROM employees
+ORDER BY department_id;	
+
+JOINS
+=====
+
+equijoin 	--> join condition is based on the equality between pair(s) of fields.
+nonequijoin	--> join condition is based on arbitrary conditions other than just equiality.
+
+NATURAL JOIN clause is based on ALL the columns that have the same name in two tables. If the columns having the same names have different data types, an error is returned.
+USING clause specifies the columns for the equijoin. You cannot qualify a column that is used in the USING clause itself.
+ON clause allow equijoins and nonequijoins
+OUTER JOIN returns all rows that satisfy the join condition and also returns some or all of those rows from one table (LEFT | RIGHT | both (FULL)) for which no rows from the other table satisfy the join condition. 
+CROSS JOIN is a JOIN operation that produces a Cartesian product of two tables. 
+
+SUBQUERIES
+==========
+
+Can be used in clauses: WHERE, HAVING, FROM 
+
+Multiple-row comparison operators
+---------------------------------
+
+Operator 	Meaning
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[NOT] IN	Equal to any member in the list. IN is equivalent to = ANY. NOT IN is equivalent to != ALL
+ANY | SOME	Must be preceded by =, !=, >, <, <=, >=. This returns TRUE if at least one element exists in the result set of the subquery for which the relation is TRUE.
+ALL 		Must be preceded by =, !=, >, <, <=, >=. This returns TRUE if the relation is TRUE for all elements in the result set of the subquery.
+
+Multiple-column subqueries use the form:
+
+(field1, field2, ... fieldN) <operator> (SELECT sfield1, sfield2, ... sfieldN FROM rest_of_subquery)
+
+<operator> can be IN (= ANY) or NOT IN (<> ALL)
+
+INSERT INTO (subquery [WITH CHECK OPTION]) VALUES (data[, data]...);
+
+subquery acts as an in-line view. Apply all rules of insertion through a view.
+
+SET OPERATORS (COMPOUND QUERIES)
+================================
+
+Operator 	Returns
+-----------------------------------------------------------------------------
+UNION 		Rows from both queries after eliminating duplications
+UNION ALL 	Rows from both queries, including all duplications
+INTERSECT 	Rows that are common to both queries
+MINUS 		Rows in the first query that are not present in the second query
+
+The expressions in the SELECT lists of each component query must match in number
+The data type of each column in the subsequent query must match the data type of its corresponding column in the first query
+Parentheses can be used to alter the sequence of execution (all operators have the same precedence)
+Set operators can be used in subqueries
+Column names from the first query appear in the result
+The ORDER BY clause can appear only at the very end of the statement and refer to the fields on the first query
+
+DATA MANIPULATION LANGUAGE (DML)
+================================
+
+INSERT INTO table [(column [, column...])] VALUES ( {value | DEFAULT}[, {value | DEFAULT}...]);
+
+INSERT INTO table [(column [, column...])] subquery;
+
+INSERT ALL 
+  INTO table [ VALUES (subquery_column[, subquery_column]...) ]
+  INTO table [ VALUES (subquery_column[, subquery_column]...) ]
+ [INTO table [ VALUES (subquery_column[, subquery_column]...) ] ]...
+subquery;
+
+INSERT {ALL | FIRST}
+  WHEN condition THEN INTO table [ VALUES (subquery_column[, subquery_column]...) ] 
+                    [ INTO table [ VALUES (subquery_column[, subquery_column]...) ] ] ...
+[ ELSE INTO table [ VALUES (subquery_column[, subquery_column]...) ]
+     [ INTO table [ VALUES (subquery_column[, subquery_column]...) ] ] ...
+]
+subquery;
+
+UPDATE table SET column = {value | DEFAULT} [, column = {value | DEFAULT}, ...] [WHERE condition];
+
+DELETE [FROM] table [WHERE condition];
+
+TRUNCATE TABLE table_name;
+More efficient to delete the entire table. It is DDL statement, not a DML statement (cannot be undone).
+
+MERGE INTO target_table [target_alias]
+USING (source_table | source_view | subquery) [source_alias]
+   ON (join_condition)
+WHEN MATCHED THEN
+     UPDATE SET column = {value | DEFAULT}
+             [, column = {value | DEFAULT} ]...
+    [ WHERE (update_condition) ]
+    [ DELETE WHERE (delete_condition) ]
+WHEN NOT MATCHED THEN
+     INSERT [ (column [, column...])  ]
+     VALUES ( {value | DEFAULT}[, {value | DEFAULT}...]);
+
+Transactions
+------------
+
+A transaction begins when the first DML statement. Ends with one of the following events:
+– A COMMIT or ROLLBACK statement is issued.
+– A DDL or DCL statement executes (automatic commit).
+– The user exits SQL Developer or SQL*Plus (COMMIT).
+– The system crashes, or SQL Developer / SQL*Plus terminates abnormally (ROLLBACK).
+
+SAVEPOINT name;
+ROLLBACK TO SAVEPOINT name;
+
+SELECT ... FOR UPDATE [OF columna_name] [WAIT seconds | NOWAIT]
+Obtain exclusive row level locks until COMMIT/ROOLBACK is issued. Wait if some of the rows are already locked. 
+Can lock rows from several tables. By indicating "OF columna_name" we can restrict the number of tables with locks.
+
+LOCK TABLE table_name IN [ROW SHARE | ROW EXCLUSIVE | SHARE UPDATE | SHARE | SHARE ROW EXCLUSIVE | EXCLUSIVE] MODE [NOWAIT];
+
+SHARE Permits concurrent queries but prevents update on the locked table
+EXCLUSIVE Permits queries on the locked table but prevents any other activity
+
+DATA DEFINITION LANGUAGE (DDL)
+==============================
+
+Naming Rules for Tables and Columns
+-----------------------------------
+
+• Begin with a letter
+• Are 1–30 characters long
+• Contain only A–Z, a–z, 0–9, _, $, and #
+• Do not duplicate the name of another object owned by the same user
+• Are not Oracle server–reserved words (SELECT, INSERT, COMMIT, ...)
+• Quoted identifiers enclosed by "" are allowed
+
+CREATE TABLE [schema.]table (
+	column datatype 
+		[DEFAULT expr]
+		[[CONSTRAINT constraint_name] constraint_type,]						-- Column constraint
+	[,...]
+	[[CONSTRAINT constraint_name] constraint_type (column, ...)[,...]] 		-- Table constraint
+)
+[AS subquery]
+	
+User must have the CREATE TABLE privilege and a storage area in which to create objects.
+
+CREATE TABLE table AS subquery; --> Column names and types are infered from the subquery. 
+
+Data Types
+----------
+
+Data Type 				Description
+------------------------------------------------------------------------------------------------------------------------
+VARCHAR2(size) 			Variable-length character data
+CHAR(size) 				Fixed-length character data
+NUMBER(p, s) 			Variable-length numeric data
+DATE 					Date and time values
+TIMESTAMP 				Date with fractional seconds
+INTERVAL YEAR TO MONTH 	Stored as an interval of years and months
+INTERVAL DAY TO SECOND 	Stored as an interval of days, hours, minutes, and seconds
+LONG 					Variable-length character data (up to 2 GB) (deprecated)
+CLOB 					Maximum size is (4 gigabytes - 1) * (DB_BLOCK_SIZE)
+RAW / LONG RAW 			Raw binary data
+BLOB 					Maximum size is (4 gigabytes - 1) * (DB_BLOCK_SIZE initialization parameter (8 TB to 128 TB))
+BFILE 					Binary data stored in an external file (up to 4 GB)
+ROWID 					A base-64 number system representing the unique address of a row in its table
+
+Data Integrity Constraints
+--------------------------
+
+Constraint 	Description
+--------------------------------------------------------------------------------------------------------------
+NOT NULL 	Specifies that the column cannot contain a null value (column level, unnamed)
+UNIQUE 		Specifies a column or combination of columns whose values must be unique for all rows in the table
+PRIMARY KEY	Uniquely identifies each row of the table
+FOREIGN KEY	Establishes and enforces a referential integrity between the column and a column of the referenced table
+				FOREIGN KEY (child_column) REFERENCES parent_table(parebt_column) [ON DELETE CASCADE | ON DELETE SET NULL]
+CHECK 		Specifies a condition that must be true
+
+Naming convention: 	<table>_<field>_<constraint_type_pk_uk>
+					<child_table>_<parent_table>_fk
+			
+Referential integrity errors
+----------------------------		
+ORA-02291 Parent key not found
+ORA-02292 Child record found
+					
+ALTER TABLE table
+	ADD (column datatype [DEFAULT expr]
+		[, column datatype]...);
+
+ALTER TABLE table
+	MODIFY (column datatype [DEFAULT expr]
+		   [, column datatype]...);
+		   
+ALTER TABLE table DROP (column [, column]...);
+
+ALTER TABLE table RENAME TO new_table;
+ALTER TABLE table RENAME COLUMN column TO new_column;
+	
+ALTER TABLE table SET UNUSED (column [, column]...) [ONLINE];
+ALTER TABLE table SET UNUSED COLUMN column [, column]... [ONLINE];
+ALTER TABLE table DROP UNUSED COLUMNS;
+
+ALTER TABLE table READ ONLY;
+ALTER TABLE table READ WRITE;
+
+DROP TABLE table [PURGE];
+
+PURGE RECYCLEBIN;
+
+DATA DICTIONARY
+===============
+
+Add comments for tables and table columns (up to 4000 bytes):
+
+COMMENT ON TABLE table IS 'comment';
+COMMENT ON COLUMN table.column IS 'comment';
+
+Data dictionary views hierarchy:
+
+View Prefix Purpose
+--------------------------------------------------------------------------
+USER_ 		User’s view (what is in your schema; what you own)
+ALL_ 		Expanded user’s view (what you can access)
+DBA_ 		Database administrator’s view (what is in everyone’s schemas)
+V$ 			Performance-related data
+X$			Actual in-memory tables supporting the data dictionary 
+
+Data Dictionary QUERIES
+-----------------------------------------------------------------------------------------------------------
+SELECT * FROM DICTIONARY; --> Views in the dtaat dictoranry (USER_, ALL_ and other)
+SELECT OBJECT_NAME, OBJECT_TYPE, CREATED, STATUS FROM USER_OBJECTS ORDER BY OBJECT_TYPE; --> All my objects (what I own)
+SELECT * FROM USER_CATALOG | CAT --> Simplified view of object (tables, views, synonyms and sequences) owned by user
+SELECT TABLE_NAME FROM USER_TABLES | TABS --> My tables
+SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '<table>' --> Information about columns on a particular table
+SELECT TABLE_NAME, COUNT FROM USER_UNUSED_COL_TABS; --> Tables with columns marked unused
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, SEARCH_CONDITION, R_CONSTRAINT_NAME, DELETE_RULE, STATUS FROM USER_CONSTRAINTS WHERE TABLE_NAME = '<TABLE>' --> Constraints defined for a table
+SELECT CONSTRAINT_NAME, COLUMN_NAME FROM USER_CONS_COLUMNS WHERE TABLE_NAME = '<TABLE>' --> Columns affected by constraints defined on a given table
+SELECT * FROM USER_TAB_COMMENTS --> Comments on tables
+SELECT * FROM USER_COL_COMMENTS --> Comments on columns
+SELECT SEQUENCE_NAME, MIN_VALUE, MAX_VALUE, INCREMENT_BY, LAST_NUMBER FROM USER_SEQUENCES --> Sequences owned by me and last generated number
+SELECT * FROM USER_SYNONYMS --> Synonyms defined by me
+SELECT INDEX_NAME, TABLE_NAME, UNIQUENESS FROM USER_INDEXES --> Indexes defined by me
+SELECT INDEX_NAME, COLUMN_NAME, TABLE_NAME FROM USER_IND_COLUMNS WHERE INDEX_NAME = '<INDEX>' --> Columns of indexes created by me
+SELECT VIEW_NAME, TEXT FROM USER_VIEWS --> Views created by me
+SELECT NAME FROM SYSTEM_PRIVILEGE_MAP --> All system privileges available
+SELECT PRIVILEGE FROM SESSION_PRIVS --> My current system privileges
+SELECT ORIGINAL_NAME, OPERATION, DROPTIME FROM RECYCLEBIN --> Dropped tables on the recycle bin 
+SELECT TZNAME, TZABBREV from V$TIMEZONE_NAMES --> List of available time zone names.
+
+SEQUENCES
+=========
+
+CREATE SEQUENCE sequence
+	[START WITH integer]
+	[INCREMENT BY integer]
+	[{MAXVALUE integer | NOMAXVALUE}]
+	[{MINVALUE integer | NOMINVALUE}]
+	[{CYCLE | NOCYCLE}]
+	[{CACHE integer | NOCACHE}]
+	[{ORDER | NOORDER}];
+
+ALTER SEQUENCE sequence
+	[INCREMENT BY n]
+	[{MAXVALUE n | NOMAXVALUE}]
+	[{MINVALUE n | NOMINVALUE}]
+	[{CYCLE | NOCYCLE}]
+	[{CACHE n | NOCACHE}];
+	
+DROP SEQUENCE sequence;
+
+• NEXTVAL returns the next available sequence value. It returns a unique value every time it is referenced, even for different users.
+• CURRVAL obtains the current sequence value. NEXTVAL must be issued for that sequence before CURRVAL can be referenced.
+
+CREATE TABLE table (generated_column NUMBER DEFAULT sequence.NEXTVAL NOT NULL ...
+INSERT INTO table VALUES (sequence.NEXTVAL, ...
+SELECT sequence.CURRVAL FROM DUAL;
+
+SYNONYMS
+========
+
+CREATE [PUBLIC] SYNONYM synonym FOR [schema.]object;
+
+DROP SYNONYM synonym;
+
+INDEXES
+=======
+
+CREATE [UNIQUE | BITMAP] INDEX index ON table (column [, column]...);
+
+PRIMARY KEY and UNIQUE constraints automatically create a UNIQUE index named like the constraint.
+Specify BITMAP to indicate that the index is to be created with a bitmap for each distinct key, rather than indexing each row separately. Bitmap indexes store the rowid associated with a key value as a bitmap.
+
+Function-Based Indexes: (QUERY REWRITE system privilege, QUERY_REWRITE_ENABLED = TRUE)
+CREATE INDEX index ON table (function(column));
+
+You can create multiple indexes on the same set of columns if the indexes are of different types, use different partitioning, or have different uniqueness properties. 
+Only one of these indexes can be visible at a time.
+
+ALTER INDEX index VISIBLE | INVISIBLE;
+
+ALTER TABLE table ADD PRIMARY KEY (column[, column]...) USING INDEX index;
+
+DROP INDEX index [ONLINE];
+
+VIEWS
+=====
+
+CREATE [OR REPLACE] [FORCE|NOFORCE] VIEW view
+	[(alias[, alias]...)]
+	AS subquery
+	[WITH CHECK OPTION [CONSTRAINT constraint]]
+	[WITH READ ONLY [CONSTRAINT constraint]];
+
+DROP VIEW view;	
+
+REPLACE Creates a new version of the view without dropping the existing one (does not require to re-GRANT access to the view)
+FORCE Creates the view regardless of whether or not the base tables exist
+WITH READ ONLY Ensures that no DML operations can be performed on this view
+	SQL Error: ORA-42399: cannot perform a DML operation on a read-only view
+WITH CHECK OPTION Specifies that only those rows that are accessible to the view can be inserted or updated	
+	SQL Error: ORA-01402: view WITH CHECK OPTION where-clause violation
+	
+DML operations not allowed if the view uses:
+• Group functions                 +        +        +
+• A GROUP BY clause               | DELETE |        |
+• The DISTINCT keyword            |        | UPDATE |
+• The pseudocolumn ROWNUM keyword +        |        | INSERT
+• Columns defined by expressions           +        |
+• NOT NULL columns without default value in the     |
+  base tables that are not selected by the view     +
+  
+CONSTRAINTS
+===========
+
+ALTER TABLE table 
+      RENAME CONSTRAINT constraint TO new_constraint;
+
+ALTER TABLE table 
+      MODIFY column {PRIMARY KEY | NOT NULL};
+
+ALTER TABLE table
+      ADD [CONSTRAINT constraint_name]
+      type (column[, column]...);
+	  
+ALTER TABLE table
+	  DROP { PRIMARY KEY 
+	       | UNIQUE (column) 
+	       | CONSTRAINT constraint }
+	  [CASCADE [CONSTRAINTS]] [ONLINE];
+	  
+ALTER TABLE table
+      {ENABLE | DISABLE} [VALDIATE | NOVALIDATE]
+	       { PRIMARY KEY 
+	       | UNIQUE (column) 
+	       | CONSTRAINT constraint }
+	  [CASCADE [CONSTRAINTS]];
+
+CASCADE drops/disable foreign key constanints (any dependet constraint) depending on the primary key being dropped/disabled. 
+
+• ENABLE ensures that all incoming data conforms to the constraint
+• DISABLE allows incoming data, regardless of whether it conforms to the constraint
+• VALIDATE ensures that existing data conforms to the constraint
+• NOVALIDATE means that some existing data may not conform to the constraint
+
+ENABLE ==> ENABLE VALIDATE
+DISABLE ==> DISABLE NOVALIDATE
+
+If you enable/disable a UNIQUE key or a PRIMARY KEY constraint, a UNIQUE or PRIMARY KEY index is created/dropped automatically. 
+
+Constraints can have the following attributes:
+• DEFERRABLE or NOT DEFERRABLE
+• INITIALLY DEFERRED or INITIALLY IMMEDIATE
+
+ALTER TABLE table 
+      ADD CONSTRAINT constraint
+      type (column[, column]...)
+      [[NOT] DEFERRABLE] 
+	  [INITIALLY {DEFERRED | IMMEDIATE}];
+	  
+SET CONSTRAINTS constraint {DEFERRED | IMMEDIATE};
+
+ALTER SESSION SET CONSTRAINTS={DEFERRED | IMMEDIATE};
+
+• A constraint is DEFERRED if the system does not check whether the constraint is satisfied until a COMMIT statement is submitted. 
+	If it is violated, the database returns an error and the TRANSACTION is rolled back.
+• If a constraint is IMMEDIATE (not deferred), it is checked at the end of each statement. 
+	If it is violated, the STATEMENT is rolled back immediately.
+	
+TEMPORARY TABLES
+================
+
+CREATE GLOBAL TEMPORARY TABLE tablename
+		[(column[, column]...)]
+	ON COMMIT [PRESERVE | DELETE] ROWS
+		[AS subquery];
+		
+DELETE --> (Default) Temporary table has the scope of a transaction.
+PRESERVE --> Temporary table has the scope of a session.
+
+EXTERNAL TABLES
+===============
+
+ORACLE_LOADER --> SQL*Loader utility
+ORACLE_DATAPUMP --> Oracle DataPump
+
+CREATE [OR REPLACE] DIRECTORY directory AS '/path/to/files';
+GRANT READ ON DIRECTORY directory TO {user | PUBLIC};
+CREATE TABLE table
+	(column datatype[, column datatype]...)
+	ORGANIZATION EXTERNAL
+		(TYPE {ORACLE_LOADER | ORACLE_DATAPUMP}
+		 DEFAULT DIRECTORY directory
+		 ACCESS PARAMETERS (...) )
+	LOCATION ('<location_specifier>')
+	REJECT LIMIT [0 | number | UNLIMITED];
+
+WITH CLUASE
+===========
+
+Reusable sub-query form:
+
+WITH CNT_DEPT AS 
+   (SELECT department_id, COUNT(*) NUM_EMP
+	  FROM EMPLOYEES
+  GROUP BY department_id)
+SELECT employee_id, SALARY/NUM_EMP 
+  FROM EMPLOYEES E JOIN CNT_DEPT C ON (e.department_id = c.department_id);
+  
+Recursive sub-query form:
+
+WITH Reachable_From (Source, Destin, TotalFlightTime) AS
+   (SELECT Source, Destin, Flight_time
+      FROM Flights
+     UNION ALL
+    SELECT incoming.Source, outgoing.Destin, incoming.TotalFlightTime + outgoing.Flight_time
+      FROM Reachable_From incoming, Flights outgoing
+     WHERE incoming.Destin = outgoing.Source)
+SELECT Source, Destin, TotalFlightTime
+  FROM Reachable_From;
+
+PRIVILEGES & ROLES
+==================
+
+• System privileges: Performing a particular action within the database or on any schema
+
+	GRANT privilege [, privilege...]
+	   TO {user | role | PUBLIC}
+	[WITH ADMIN OPTION];
+
+• Object privileges: Manipulating the content of the database objects
+
+	GRANT {object_priv [(columns)] | ALL}
+	   ON object
+	   TO {user | role | PUBLIC}
+	[WITH GRANT OPTION];
+	
+	object_priv: ALTER | DELETE | INDEX | INSERT | REFERENCES | SELECT | UPDATE
+
+CREATE USER user IDENTIFIED BY password;
+GRANT CREATE SESSION TO user;
+
+ALTER USER user IDENTIFIED BY new_password;
+SQL> PASSWD
+
+CREATE ROLE role;
+GRANT privilege[, privilege]... TO role;
+GRANT role TO user [WITH DELEGATE OPTION];
+
+REVOKE {privilege [, privilege...]|ALL}
+   [ON object]
+  FROM {user[, user...]|role|PUBLIC}
+[CASCADE CONSTRAINTS];
+
+Data Dictionary View 	Description
+------------------------------------------------------------------------------------------
+ROLE_SYS_PRIVS 			System privileges granted to roles
+ROLE_TAB_PRIVS 			Table privileges granted to roles
+USER_ROLE_PRIVS 		Roles accessible by the user
+USER_SYS_PRIVS 			System privileges granted to the user
+USER_TAB_PRIVS_MADE		Object privileges granted on the user’s objects
+USER_TAB_PRIVS_RECD		Object privileges granted to the user
+USER_COL_PRIVS_MADE		Object privileges granted on the columns of the user’s objects
+USER_COL_PRIVS_RECD		Object privileges granted to the user on specific columns
+
+FLASHBACK TABLE & VERSION QUERIES
+=================================
+
+FLASHBACK TABLE [schema.]table [, [schema.]table]... 
+       TO { SCN | TIMESTAMP } expr [{ENABLE | DISABLE} TRIGGERS]
+	      | RESTORE POINT restore_point [{ENABLE | DISABLE} TRIGGERS]
+		  | BEFORE DROP [RENAME TO table];		  
+
+Triggers are disabled by default.
+
+Version queries (data committed on transactions): 
+
+SELECT fields
+  FROM table
+     { AS OF TIMESTAMP {timestamp | (SYSTIMESTAMP - INTERVAL 'x' MINUTE)}
+	 | AS OF SCN n }
+WHERE condition;
+
+SELECT fields [, VERSIONS_STARTTIME] [, VERSIONS_ENDTIME]
+  FROM table
+       VERSIONS BETWEEN {SCN | TIMESTAMP} {start | MINVALUE} AND {finish | MAXVALUE}
+WHERE condition;
+
+TIMEZONE MANAGEMENT
+===================
+
+ALTER SESSION SET TIME_ZONE = '-05:00';			Offset from UTC
+ALTER SESSION SET TIME_ZONE = dbtimezone;		Database time zone
+ALTER SESSION SET TIME_ZONE = local;			OS time zone 
+ALTER SESSION SET TIME_ZONE = 'Europe/Paris';	Region/City
+
+CURRENT_DATE 		--> DATE
+CURRENT_TIMESTAMP 	--> TIMESTAMP WITH TIMEZONE
+LOCALTIMESTAMP 		--> TIMESTAMP 
+SESSIONTIMEZONE		--> Timezone set for the session 
+DBTIMEZONE			--> Timezone of the database server (database instance)
+
+ALTER SESSION SET TIME_ZONE = local;
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS';
+SELECT SESSIONTIMEZONE, SYSDATE, LOCALTIMESTAMP, CURRENT_DATE, CURRENT_TIMESTAMP FROM DUAL;
+
+SESSIONTIMEZONE  SYSDATE              LOCALTIMESTAMP               CURRENT_DATE         CURRENT_TIMESTAMP                        
+---------------- -------------------- ---------------------------- -------------------- -----------------------------------------
+Europe/Paris     17-JUL-2018 12:43:43 17-JUL-18 12.43.43.235169000 17-JUL-2018 12:43:43 17-JUL-18 12.43.43.235169000 EUROPE/PARIS
+
+Datatype: TIMESTAMP (fractional_seconds_precision) [WITH [LOCAL] TIME ZONE]
+   		  year, month, and day values of date, as well as hour, minute, seconds and fractions of seconds (precission 1-9, default 6)
+WITH TIME ZONE 	It also has either an offset from UTC or a region name (like CURRENT_TIMESTAMP)
+LOCAL			Stored using DBTIMEZONE, displayed using SESSIONTIMEZONE (and timezone not displayed, like LOCALTIMESTAMP)
+
+Interval Data Type
+------------------
+
+Data Type 				Fields
+-----------------------------------------------------------------------------
+INTERVAL YEAR TO MONTH 	Year, Month
+INTERVAL DAY TO SECOND 	Days, Hour, Minute, Second with fractional seconds
+
+To store the difference between two datetime values.
+
+INTERVAL YEAR (year_precision[0-9]:6) TO MONTH
+Examples:	'21-2'
+			INTERVAL '100-2' YEAR(3) TO MONTH 
+			INTERVAL '666' YEAR(3)
+			INTERVAL '300' MONTH(3)
+	
+INTERVAL DAY (day_precision[0-9]:2) TO SECOND (fractional_seconds_precision[0-9]:6)
+Exqamples:	'90 00:00:00'
+			INTERVAL '6 03:30:16' DAY TO SECOND
+			INTERVAL '10' HOUR
+			
+EXTRACT( { YEAR | MONTH | DAY | HOUR | MINUTE | SECOND | TIMEZONE_HOUR | TIMEZONE_MINUTE | TIMEZONE_REGION | TIMEZONE_ABBR } FROM { expr } )
+
+TZ_OFFSET({ 'time_zone_name' | '{ + | - } hh : mi' | SESSIONTIMEZONE | DBTMEZONE })
+
+FROM_TZ(timestamp_value, time_zone_value) TIMESATAMP --> TIMESTAMP WITH TIME ZONE
+
+TO_TIMESTAMP(char [, fmt [, 'nlsparam' ] ])
+
+TO_YMINTERVAL('yy-mm')
+TO_DSINTERVAL('ddd hh:mm:ss')
+
+Session parameter ERROR_ON_OVERLAP_TIME {TRUE | FALSE} --> Overlap hour at the end of a DST period.
+TRUE --> Throws an error if an ambiguous timestamp is processed
+FALSE --> Assumes non-DST time for any ambiguous timestamp processed
+
+Using timezone abbreviations, the interval is not ambiguous:
+• 10/31/2016 01:00:01 AM to 10/31/2016 02:00:00 AM (EDT)
+• 10/31/2016 01:00:01 AM to 10/31/2016 02:00:00 AM (EST)
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<----------------------------------------------------------------------------------------------# END OF CHEATSHEET #---------------------------------------------------------------------------------------------->>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
