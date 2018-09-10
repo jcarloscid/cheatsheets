@@ -1,0 +1,915 @@
+
+
+  RRRRRRRRRRRRRRRRR   HHHHHHHHH     HHHHHHHHHEEEEEEEEEEEEEEEEEEEEEELLLLLLLLLLL                  77777777777777777777             000000000     
+  R::::::::::::::::R  H:::::::H     H:::::::HE::::::::::::::::::::EL:::::::::L                  7::::::::::::::::::7           00:::::::::00   
+  R::::::RRRRRR:::::R H:::::::H     H:::::::HE::::::::::::::::::::EL:::::::::L                  7::::::::::::::::::7         00:::::::::::::00 
+  RR:::::R     R:::::RHH::::::H     H::::::HHEE::::::EEEEEEEEE::::ELL:::::::LL                  777777777777:::::::7        0:::::::000:::::::0
+    R::::R     R:::::R  H:::::H     H:::::H    E:::::E       EEEEEE  L:::::L                               7::::::7         0::::::0   0::::::0
+    R::::R     R:::::R  H:::::H     H:::::H    E:::::E               L:::::L                              7::::::7          0:::::0     0:::::0
+    R::::RRRRRR:::::R   H::::::HHHHH::::::H    E::::::EEEEEEEEEE     L:::::L                             7::::::7           0:::::0     0:::::0
+    R:::::::::::::RR    H:::::::::::::::::H    E:::::::::::::::E     L:::::L                            7::::::7            0:::::0 000 0:::::0
+    R::::RRRRRR:::::R   H:::::::::::::::::H    E:::::::::::::::E     L:::::L                           7::::::7             0:::::0 000 0:::::0
+    R::::R     R:::::R  H::::::HHHHH::::::H    E::::::EEEEEEEEEE     L:::::L                          7::::::7              0:::::0     0:::::0
+    R::::R     R:::::R  H:::::H     H:::::H    E:::::E               L:::::L                         7::::::7               0:::::0     0:::::0
+    R::::R     R:::::R  H:::::H     H:::::H    E:::::E       EEEEEE  L:::::L         LLLLLL         7::::::7                0::::::0   0::::::0
+  RR:::::R     R:::::RHH::::::H     H::::::HHEE::::::EEEEEEEE:::::ELL:::::::LLLLLLLLL:::::L        7::::::7                 0:::::::000:::::::0
+  R::::::R     R:::::RH:::::::H     H:::::::HE::::::::::::::::::::EL::::::::::::::::::::::L       7::::::7           ......  00:::::::::::::00 
+  R::::::R     R:::::RH:::::::H     H:::::::HE::::::::::::::::::::EL::::::::::::::::::::::L      7::::::7            .::::.    00:::::::::00   
+  RRRRRRRR     RRRRRRRHHHHHHHHH     HHHHHHHHHEEEEEEEEEEEEEEEEEEEEEELLLLLLLLLLLLLLLLLLLLLLLL     77777777             ......      000000000     
+
+  
+   _______  ______   _______ _________ _       _________ _______ _________ _______  _______ __________________ _______  _       
+  (  ___  )(  __  \ (       )\__   __/( (    /|\__   __/(  ____ \\__   __/(  ____ )(  ___  )\__   __/\__   __/(  ___  )( (    /|
+  | (   ) || (  \  )| () () |   ) (   |  \  ( |   ) (   | (    \/   ) (   | (    )|| (   ) |   ) (      ) (   | (   ) ||  \  ( |
+  | (___) || |   ) || || || |   | |   |   \ | |   | |   | (_____    | |   | (____)|| (___) |   | |      | |   | |   | ||   \ | |
+  |  ___  || |   | || |(_)| |   | |   | (\ \) |   | |   (_____  )   | |   |     __)|  ___  |   | |      | |   | |   | || (\ \) |
+  | (   ) || |   ) || |   | |   | |   | | \   |   | |         ) |   | |   | (\ (   | (   ) |   | |      | |   | |   | || | \   |
+  | )   ( || (__/  )| )   ( |___) (___| )  \  |___) (___/\____) |   | |   | ) \ \__| )   ( |   | |   ___) (___| (___) || )  \  |
+  |/     \|(______/ |/     \|\_______/|/    )_)\_______/\_______)   )_(   |/   \__/|/     \|   )_(   \_______/(_______)|/    )_)
+  
+
+   e88~-_  888                            d8          888                            d8   
+  d888   \ 888-~88e  e88~~8e    /~~~8e  _d88__  d88~\ 888-~88e  e88~~8e   e88~~8e  _d88__ 
+  8888     888  888 d888  88b       88b  888   C888   888  888 d888  88b d888  88b  888   
+  8888     888  888 8888__888  e88~-888  888    Y88b  888  888 8888__888 8888__888  888   
+  Y888   / 888  888 Y888    , C888  888  888     888D 888  888 Y888    , Y888    ,  888   
+   "88_-~  888  888  "88___/   "88_-888  "88_/ \_88P  888  888  "88___/   "88___/   "88_/ 
+
+
+KICKSTART
+=========
+
+Unattended Anaconda installations
+
+Doc: /usr/share/doc/pykickstart-*/kickstart-doc.txt
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# Sample kickstart install script
+# Location of the installation media
+url --url="ftp://installserver.example.com/pub/RHEL7/dvd"
+# Repository for additional packages
+repo --name"Custom Packages" --baseurl="ftp://repo.example.com/custom"
+# Use text mode install
+#text
+# Allow graphical installation to be viewwed via VNC
+#vnc --password=redhat
+# Partitioning:
+# Clear all partitions before install, including master boot record
+zerombr
+clearpart --all --drives=sda,sdb --initlabel
+# Install bootloader on Master Boot Record on Disk#1
+bootloader --location=mbr --boot-drive=sda
+# Do not use disk#3
+ignoredisk --drives=sdc
+# Create a standard partition. Size 4096-8192MB elastic
+part /home --fstype=ext4 --label=home --size=4096 --maxsize=8192 --grow
+# Create LVM pv, vg and lv(s). Phisical volume is 8GB. Root fs initial size 2GB, elastic. /var size 4GB
+part pv.01 --size=8192
+volgroup myvg pv.01
+logvol / --vgname=myvg --fstype=xfs --size=2048 --name=rootvol --grow
+logvol /var --vgname=myvg --fstype=xfs --size=4096 --name=varvol
+# Network over eth0 interface, configure using DHCP
+network --device=eth0 --bootproto=dhcp
+# Firewall enabled. allow ssh and cups (printers) incomming trafic
+firewall --enabled --service=ssh,cups
+# Configure for US English and Madrid local time
+lang en_US.utf8
+keyboard --vckeymap=us --xlayouts='us','us'
+timezoene --utc --ntpservers=time.example.com Europe/Madrid
+# Set root password and auth method
+auth --usershadow --enablemd5 --passalgo=sha512
+rootpw --plaintext redhat
+# Use SELinux and RHEL7 network services
+selinux --enforcing
+services --disabled=network,iptables,ip6tables --enabled=NetworkManager,firewalld
+# Create one admin user (local)
+group --name=admins --gid=10001
+user --name=jdoe --gecos="John Doe" --groups=admin --password=changeme --plaintext
+#logging --host=loghost.example.com --level=info
+logging --level=info
+firstboot --disbled
+reboot
+
+%packages
+@X Window System	 					# Package group, (@^ environment)
+@GNOME Desktop Environment
+@Graphical Internet
+@Sound and Video
+dhcp									# Individual packages
+chrony
+firewalld
+-iptable								# Do not install
+-ip6tables
+%end
+
+%pre
+# Pre-installation scripts, if required.
+# Nothing has been installed yet, but you can for instance partition the disks
+%end
+
+%post
+# Post-installation scripts, if required.
+# Use a script to configure the network
+cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+DEVICE="eth0"
+BOOTPROTO="dhcp"
+ONBOOT="yes"
+TYPE="Ethernet"
+USERCTL="yes"
+PEERDNS="yes"
+IPV6INIT="no"
+ZONE="public"
+EOF
+
+%end
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+/root/anakonda-ks.cfg 		Script generated by Anaconda according to current system installation
+$ system-config-kickstart 	Graphical utility to create kickstart scripts ($ yum install system-config-kickstart)
+$ ksvalidator				Simple syntax validation of a Kickstart script
+
+Anaconda --> Press Tab to interrupt the installation and add the ks= parameter with the script location 
+
+ks=http://server/dir/file
+ks=ftp://server/dir/file
+ks=nfs:server:/dir/file
+ks=hd:device:/dir/file
+ks=cdrom:/dir/file
+
+GREP REGULAR EXPRESSIONS
+========================
+
+Doc: regex(7), grep(1)
+
+.			Any character
+^			Line starts with
+$			Line ends with
+\<			Start of word
+\>			End of word
+[<set>]		One of the elements in set
+*			Zero or many times previous item
+\{n\}		Exactly n times previous item. 
+\{n,m\}		At least n time,s at most m times previous item. Both n and m are optional
+\+			Equivalent to \{1,\}. At leats one time previous item
+( )			Group items for multipliers
+
+grep options:
+-i 			Case insensitive
+-v			Reverse. Lines without the pattern
+-r			Recursive on files and dirs
+-B n -A n	Display number of lines [B]efore and/or [A]fter each matching line
+-e 			Use multiple regular expressions (regex1 OR regex2)
+-c			Just count lines with the pattern
+-n 			Show the line number of matched lines
+
+VIM TEXT EDITOR
+===============
+
+Doc: vim(1) vim :help
+
+Packages: 
+	vim-minimal 	vi, rvi ...
+	vim-enhanced 	vim, rvim ...
+	vim-X11			gvim
+	
+On COMMAND mode:
+--------------------------------------------------------------------------------	
+Ctrl+G 	Display current file information
+Ctrl+N 	Auto complete (using current document text)
+AltGr+Ñ Toggle upper/lower case
+Ctrl+R 	Redo
+u 		Undo
+i 		Insert text -- INSERT --
+a		append text -- INSERT --
+I 		Insert at the begining of the line-- INSERT --
+A		Append at the end of the line -- INSERT --
+R 		Replace mode, characters are replaced one by one -- REPLACE --
+r		Replace a single character (do not enter to replace mode)
+o 		Open new line below current -- INSERT --
+O 		Open new line above current -- INSERT --
+cw		Replace current word
+cc		Replace current line
+c$		Replace to the end of line
+C		Replace to the end of line
+yy		Copy current line to buffer
+yw		Copy current word to buffer
+y$		Copy until end of line to buffer
+dd		Cut current line (to buffer)
+dw		Cut current word (to buffer)
+d$		Cut until end of line (to buffer)
+p 		Paste after cursor
+P 		Paste before cursor
+h		Cursor left 	<
+j		Cursor down 	v 
+k		Cursor up 		^
+l		Cursor right 	>
+w		Move to begining of next word
+b 		Move to begining of previous word
+(		Move to begining of current/previous sentence
+) 		Move to begining of next word
+{		Move to begining of current/previous sentence
+} 		Move to begining of next word
+^		Move to the beginning of the line
+$		Move to the end of the line
+gg		First line of the document
+<n>gg	N-th line of the document
+G 		Last line of the document
+/		Search forward (typed regex)
+?		Search backward (typed regex)
+*		Search forward the word under the cursor	
+n 		Next match
+N 		Previous match
+v		Enter (and exit) visual mode-char selection -- VISUAL --
+Shift+v	Enter (and exit) visual mode-line selection -- VISUAL LINE --
+Ctrl+v  Enter (and exit) visual mode-block selection -- VISUAL LINE --
+
+On EXECUTION mode:
+--------------------------------------------------------------------------------	
+:wq		Write and quit
+:x		Save (if changed) and quit
+:w 		Save
+:w <f>	Save to another file
+:q		Quit (not saving)
+:q!		Quit ignoring unsaved changes
+:w!		Force write
+:r <f>	Read file into editor
+:!<cmd>	Run shell command
+:r !<c>	Run command and read output into editor
+:set nu	Show line numbers
+:set nonu Hide line numbers
+:noh	Crear last search highlighted words
+:set invlist Show/hide special characters and end of lines
+:set mouse=a The mouse can move and click on text window
+:set key=<password>	--> Crypt the file using a password 
+:set key= --> Clear encryption password. File is saved as plain text.
+:w !sudo tee % &> /dev/null --> To save a read only file usinf root privileges
+:s/t1/t2	Replace t1 by t2 first occurrence on current line
+:1,100s/t1/t2	Replace t1 by t2 first occurrence on lines 1 to 100
+:%s/t1/t2	Replace t1 by t2 first occurrence on entire file
+:%s/t1/t2/g	Replace t1 by t2 all occurrences on entire file
+:s/t1/&t2	Adds t2 to the first occurrence of t1 on current line
+:/pattern/s/t1/t2/g On all lines containing pattern, replace t1 by t2 all occurrences
+:s/t1/t2/i	Replace t1 by t2 first occurrence on current line case insensitive
+:s/t1/t2/n	Replace t1 by t2 first occurrence on current line dry mode (change nothing)
+
+vim options:
+-x <file>			Open a file and encrypt it
+-o <file1> <file1> 	Open two files in parallel (vertical)
+-O <file1> <file1> 	Open two files in parallel (horizontal)
+
+SCHEDULING TASKS (AT, CRON & ANACRON)
+=====================================
+
+Packages: at, cronie
+
+Doc: at(1), /usr/share/doc/at-*/timespec
+	 crond(8), crontab(1), crontab(5)
+	 anacron(8), anacrontab(5)
+
+Configuration:		
+/etc/at.allow		List of users that can submit 'at' jobs.
+/etc/at.deny		Not used if at.allow exists.  List of users restricted to submit 'at' jobs.
+/etc/cron.allow		List of users that can submit 'cron' jobs.
+/etc/cron.deny		Not used if cron.allow exists.  List of users restricted to submit 'cron' jobs.
+/etc/anacrontab		How anacron run dialy, weekly and monthly jobs
+
+Launching a scheduled job:
+$ at <TIMESPEC>
+> command
+> ...
+> command
+Ctrl+D
+
+Timespec samples:
+now +5min
+teatime tomorrow 		(teatime is 4:00 p.m.)
+noon +4 days
+5pm august 3 2018
+
+$ atq 				# List scheduled jobs (like at -l) and provides JOBNUMBERs
+$ atrm <JOBNUMBER>	# Removes a job from the queue
+$ at -c <JOBNUMBER>	# Details of a particular job (environment and commands)
+
+$ crontab -l 		# List cron jobs for current user
+$ crontab -r		# Remove all jobs from current user
+$ crontab -e		# Edit cron jobs for current user
+$ crontab <file>	# Remove all existing jobs and laod the content of <file>
+# crontab -u <user>	... # Root can perform operations over other users cron jobs
+
+User crontab file:
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+SHELL=/bin/bash
+MAIL=user@example.com
+PATH=/usr/bin:/usr/local/bin:/home/user/bin
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * command to be executed 
+0	4	* 	*	1-5 		/app/batch/daily-monday-to-friday-4am-batch
+30	0	1	jan,may,sep	*	/app/batch/end-of-quarter-batch 
+*/10 *	* 	* 	*			/app/maintenance/flush-caches-every-10m
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+If day-of-month and day-of-week are both <> * ==> They are interpreted as OR
+
+System cron jobs: (In addition to the schema above, they need a user-name before the command to be executed)
+/etc/crontab
+/etc/cron.d/*
+
+Scripts that system will run hourly, daily, weekly or monthly:
+/etc/cron.hourly/*				--> lacunched by /etc/cron.d/0hourly 
+/etc/cron.daily/*				-\ 
+/etc/cron.weekly/*				--> anacron
+/etc/cron.monthly/*				-/ 
+
+
+TEMPORARY AND VOLATILE FILES
+============================
+
+Doc: systemd-tmpfiles(8), tmpfiles.d(5)
+
+Configuration:
+/etc/tmpfiles.d/*.conf	 
+/run/tmpfiles.d/*.conf	 
+/usr/lib/tmpfiles.d/*.conf	 
+
+# systemd-tmpfile --create --remove		# Systemd during boot processs
+# systemd-tmpfile --clean				# Using the timer unit, 15 min after booting and once a day (see sample)
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /usr/lib/systemd/system/systemd-tmpfiles-clean.timer
+[Unit]
+...
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1d
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /usr/lib/systemd/system/systemd-tmpfiles-clean.service
+[Unit]
+...
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemd-tmpfiles --clean
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+File timestamps:
+atime		Last time file was accesse
+mtime		Last time file content was modified (displayed by ls -l)
+ctime		Last time file status was modified (eg. chmod)
+
+$ stat <file>
+
+To remove a file/dir, all timestamps must be above the age configured on system-dtmpfiles.
+
+Sample configuration file for systemd-tmpfiles:
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# Clear tmp directories separately, to make them easier to override
+#Type Path  	Mode  UID   GID   Age 	Argument
+d 	  /tmp  	1777  root  root  10d
+d 	  /var/tmp 	1777  root  root  30d
+
+# Exclude namespace mountpoints created with PrivateTmp=yes
+#Type Path  	Mode  UID   GID   Age 	Argument
+x 	  /tmp/systemd-private-*
+x 	  /var/tmp/systemd-private-*
+X 	  /tmp/systemd-private-*/tmp
+X 	  /var/tmp/systemd-private-*/tmp
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+PROCESS PRIORITY
+================
+
+Doc: nice(1)
+
+Normal scheduling policy: SCHED_OTHER (aka SCHED_NORMAL) (displayed as TS on ps/top)
+
+Nice level (priority) default is 0, inherited from parent process.
+
+Only root can set negative nice levels. User can only increase a process nice level.
+
+          +++                                       ---
+NI Nice                        -20 -19 ...  0 ... 18 19 
+PR Top    RT ... -99 ... -3 -2   0   1 ... 20 ... 38 39
+
+$ ps -eo pid,cmd,cls,nice  		#cls --> scheduling policy, nice --> nice level
+
+$ nice mybatch & 				# default nice level is 10
+[2] 12932
+$ nice -n 15 myscript &
+[2] 12936
+$ renice -n 19 12936			# lowest
+$ sudo renice -n -10 $(pgrep 'mybatch')
+
+ACLS
+====
+
+Doc: acl(5), getfacl(1), setfacl(1)
+
+For ext2, ext3 and ext4 filesystems, check mount options (mount -s | grep /dev/part)
+$ mount -o user_xattr,acl /dev/part 	# allow acls for this mount only
+$ tune2fs -o user_xattr,acl /dev/part 	# allow acls for future mounts
+
+RHEL6 does not set this default mount options by default. RHEL7 does.
+ext4 filesystems created by anaconda had been set up with ACLs, even on RHEL6
+
+If file have ACLs, chmod change the mask for the group level permissions
+The following code change grop permissions to rwx in any case
+$ if [ $(getfacl -s $FILE) = '' ] ; then chmod g+rwx $FILE; else setfacl -m -g::rwx $FILE; fi
+
+Mask: Maximum permissions possible for:
+- all named users
+- the group owner
+- all named groups
+
+ACL permission precedence:
+1. user is the owner --> file owner permissions
+2. user matchs a named user --> permissions of the named user restricted by mask
+3. user belongs to file owner group --> file group permissions restricted by mask
+4. user belongs to any of the named groups --> permissions of the named group restricted by mask
+5. Permissions for other
+
+$ getfacl myfile
+$ getfacl file1 | setfacl --set-file=- file2 # Copy ACL from file1 to file2
+$ getfacl -R /dir1 ; setfacl -R --set-file=- # Recover ACLS from a backup location (cp -a)
+
+$ setfacl -m u:user1:rw file1
+$ setfacl -m g:group1:rwx file1
+$ setfacl -m o::- file1
+$ setfacl -n -m g::-					# Do not recompute the mask (-n)
+$ setfacl -m m::rw file1				# Set the mask (==> chmod g=rw file1)
+$ setfacl --set u::rwx,g::-,o::- myfile	# Totally replace ACL
+$ setfacl -R -m u:user1:rwX dir1		# Recursive, x is only given to dirs and files already with x
+$ setfacl -x u:user1,g:group1 file1		# Remove ACL for a named user and a named group
+$ setfacl -k file1						# Remove all default ACLS
+$ setfacl -b file1						# Remove all ACLS (including default)
+$ setfacl -m d:u:user1:rwx dir1			# Set default ACLs for a directory (inheritance)
+$ setfacl -x d:u:user1 dir1				# Remove default ACLs for a directory (inheritance)
+
+SELINUX
+=======
+
+Doc: selinux(8), semanage(8), semanage-fcontext(8), semanage-boolean(8) 
+
+Configuration: /etc/selinux/config
+
+Packages: 	selinux-policy-devel			(Documentation $ man -k _selinux)
+			setroubleshoot-server			(Troubleshooting)
+
+MAC: Mandatory Access Control --> SELinux
+	- Everything is forbidden, except explicitly allowed
+DAC: Discrectionary Access Control
+	- Everything is allowed, except explicitly forbidden
+
+Mount option 'user_xattr' is required to use SELinux, see note on ACLs section.
+
+Linux Security Levels
+---------------------
+Netfilter (firewall)                      | External
+SELinux                                   |
+libwrap (/etc/hosts.allow)                |
+xinetd (for services, initd)              | 
+PAM (authentication)                      |
+Application level (eg. /etc/cron.allow)   |
+Permission level (ugo/rwx ACLs)           | Internal
+
+SELinux protects files, directories and ports.
+
+                             +-> SELinux context
+			  		         |	    +-> Sensitivity
+                             |      | 
+SElinux label: user_u;role_r:type_t:s0:c0 --> Category
+
+SELinux TARGETED (default) policy uses type_t
+
+SElinux mode |   Log  | Protect
+-------------+--------+---------
+enforcing    |   Yes  |   Yes
+permissive   |   Yes  |    -
+disabled     |    -   |    -
+
+$ getenforce
+# setenforce 0 			
+# setenforce Enforcing
+# vim /etc/selinux/config
+
+Kernel parameters (GRUB2 menu): enforcing=0|1 selinux=0|1
+selinux=0 ==> disabled
+
+Listing SELinux context
+-----------------------
+# ls -lZ file1
+# ps -ZC httpd
+# semanage fcontext -l
+# semanage port -l
+# semanage boolean -l		# Also 'getsebool -a'
+
+
+Setting SELinux context
+-----------------------
+# chcon -t httpd_sys_content_t /web		# Deprecated
+# semanage fcontext -a -t httpd_sys_content_t "/web(/.*)?"
+# restorecon -FRvv /web
+
+SELinux booleans
+----------------
+
+Booleans have 2 stattus: current + on-boot
+
+# getsebool -a								
+# semanage boolean -l
+# getsebool httpd_enable_homedirs			
+# semanage boolean -l | grep 'httpd_enable_homedirs'
+# setsebool httpd_enable_homedirs on					# Change only current value
+# setsebool -P httpd_enable_homedirs on					# Change only on-boot value
+# semanage boolean -m --on httpd_enable_homedirs		# Change current and on-boot
+# semanage boolean -m -0 httpd_enable_homedirs			# --on | -1   --off | -0
+# semanage boolean -l -C								# List booleans with non-default settings
+
+Troubleshooting SELinux
+-----------------------
+
+SELinux violations: /var/log/audit/audit.log --> 'type=AVC' entries
+/var/log/messages --> Violation summary, including UUID
+
+# sealert -a /var/log/audit/audit.log
+# sealert -l UUID
+
+LDAP, KERBEROS, AD, IPA - NETWORK DEFINED USERS AND GROUPS
+==========================================================
+
+- Account information: LDAP (protocol); IPA, Active Directory AD (products)
+- Authentication information: LDAP, Kerberos (protocols); IPA, Active Directory AD (products)
+
+Doc: authconfig(8), ipa-client-install(1), sssd(8), realm(8)
+
+LDAP-Kerberos authconfig
+------------------------
+
+Configuration: (all files managed by authconfig)
+	/etc/openldap/ldap.conf
+	/etc/krb5.conf
+	/etc/sssd/sssd.conf
+	/etc/nswitch.conf
+	/etc/pam.d/*
+	/etc/openldap/cacerts/
+	
+Packages: 	sssd				# required
+			authconfig			# required, usually installed
+			authconfig-gtk		# only required for system-config-authentication
+			krb5-workstation	# higly recommended
+
+# authconfig-tui	# curses
+# system-config-authentication	# graphical (authconfig-gtk)
+
+# authconfig --enableldap --disableldapauth --ldapserver=ldapserver.example.com --ldapbasedn="dc=example,dc=com" --enableldaptls --ldaploadcacert=http://ldapserver.example.com/pub/certs/example-ca.cert \
+             --enablekrb5 --krb5kdc=krb5kdc.example.com --krb5adminserver=krb5admin.example.com --krb5realm=EXAMPLE.COM \ 
+			 --enablesssd --enablesssdauth --enablemkhomedir \
+			 --update
+  
+$ getent passwd <network-user>
+$ ssh <network-user>@localhost
+
+IPA Server
+----------
+
+Packages: ipa-client
+
+# ipa-client-install 
+Discovering was successfull!
+...
+User authorized to enroll computers: admin
+...
+Password for admin@DOMAIN0.EXAMPLE.COM: redhat123
+...
+
+Active Directory
+----------------
+
+Packages: realm, sssd
+
+# realm discover domain.example.com
+# realm join domain.example.com				# Use --user if Administrator is not your loging to AD
+# realm permit --realm domain.example.com --all 
+# realm permit --realm domain.example.com DOMAIN\\aduser1 DOMAIN\\aduser2 
+
+DISK PARTITIONS AND FILE SYSTEMS
+================================
+
+Doc:  fdisk(8), gdisk(8), mkfs(8), fstab(5), mount(8), blkid(8)
+
+Configuration:
+/etc/fstab
+
+# fdisk /dev/disk
+# gdisk /dev/disk
+# partprobe /dev/disk
+
+# mkfs -t xfs /dev/part1
+# mkfs -t ext4 /dev/part2
+
+# mount /dev/part1 /mnt
+# mount | grep part1
+# mount -a
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/fstab
+/dev/sda1 									/  		xfs     defaults		1 1
+UUID=1e9a1a33-559e-4f99-8120-8cdfc842df17 	/boot   xfs     defaults		1 2
+/dev/sda3 									swap    swap    defaults,pri=1	0 0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+$ findfs UUID=1e9a1a33-559e-4f99-8120-8cdfc842df17 
+$ ls -l /dev/disk/by-uuid
+# blkid
+$ lsblk
+
+SWAP space
+----------
+
+Type 82 Linux Swap
+
+# mkswap /dev/part3
+$ free						# Memory usage status
+$ swapon 					# Display current swap space  
+# swapon -p 1 /dev/part3	# Activate and set priority 1 (higher than -1)
+# swapon -a 				# /etc/fstab
+
+LVM - LOGICAL VOLUME MANAGER
+============================
+
+Doc: lvm(8)
+
+Default: 1 extent = 4MB --> Defined at the volume group level (-s 32)
+
+Creating ...
+# pvcreate /dev/part1 /dev/part2
+# vgcreate -s 32 vg0 /dev/part1 /dev/part2
+# lvcreate -n lvol0 -L 512M vg0		# 512 MiB	
+# mkfs -t ext4 /dev/mapper/vg0-lvol0 # Alternatively /dev/vg0/lvol0
+# mkdir /mnt/data 
+# mount /dev/mapper/vg0-lvol0 /mnt/data
+
+# lvcreate -n lvol1 -l 32 vg0		# 32 extents (32 * 32 MiB = 1 GiB)
+# lvcreate -n lvol2 -l 30%FREE vg0	
+# lvcreate -n lvol3 -l 30%VG vg0	
+
+Listing ...
+# pvs
+# pvdisplay /dev/part1
+# vgs
+# vgdisplay vg0
+# lvs
+# lvdisplay vg0/lvol0
+# lvdisplay /dev/vg0/lvol1
+# lvdisplay /dev/mapper/vg0-lvol2
+
+Removing ...
+# umount /mnt/data
+# lvremove /dev/vg0/lvol0
+# vgremove vg0
+# pvremove /dev/part1 /dev/part2
+
+Extending ...
+# fdisk || gdisk || parted # Create /dev/part3
+# pvcreate /dev/part3
+# vgextend vg0 /dev/part3
+# lvextend -r -L +5G /dev/vg0/lvol0 # Also extends the filesystem
+# xfs_grofs /mnt/data				# Manually extend an XFS file system
+# resize2fs /dev/vg0/lvol0			# Manually extend an ext2/ext3/ext4 file system
+
+Shrinking ...
+# pvmove /dev/part3
+# vgreduce vg0 /dev/part3
+# pvremove /dev/part3
+#
+# umount /mnt/data
+# fsck -f /dev/mapper/vg0-lvol0
+# resize2fs /dev/mapper/vg0-lvol0 512M
+# lvreduce /dev/mapper/vg0-lvol0 -L 512M
+# lvdisplay vg0/lvol0
+# mount -a
+
+LV Snapshots ...
+# lvcreate -s -n snap0 /dev/mapper/vg0-lvol0 -L 50M
+... changes occur on /mnt/data
+# umount /mnt/data
+# mount -o ro /dev/mapper/vg0-lvol0 /mnt/repair
+... check that snapshot is correct. Commit/Rollback?
+# umount /mnt/repair
+# lvremove /dev/mapper/vg0-snap0	# Commit. Snapshot is no longer required
+# lvconvert --merge vg0/lvol0		# Rollback, snapshot is removed
+# mount -a
+
+NFS - NETWORK FILE SYSTEM
+=========================
+
+Doc: nfs(5), mount.nfs(8)
+
+Packages: nfs-utils, autofs
+
+Configuration:
+/etc/fstab
+/etc/auto.master.d/*.aoutofs
+/etc/auto.*
+
+Security options (sec=)
+- none --> nfsnobody
+- sys --> default, client UID/GID
+- krb5 --> Client must probe identity using Kerberos
+- krb5i --> Adds a kind of digital signature, but is not encrypted
+- krb5p --> Traffic is encrypted, worst performance
+
+krb5, krb5i and krb5p require /etc/krb5.keytab and nfs-secure service
+# yum -y install nfs-utils
+# wget -O /etc/krb5.keytab http://server0.example.com/pub/keytabs/client0.keytab 	# unsecure
+# systemctl enable nfs-secure
+# systemctl start nfs-secure
+
+# mkdir -p /mnt/nfs/share1
+# showmount -e server0.example.com 		# Show exports NFSv2 and NFSv3 only
+# mount -t nfs -o sync,sec=krb5p server0.example.com:/share1 /mnt/nfs/share1
+# vim /etc/fstab
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/fstab
+server0.example.com:/share1 	/mnt/nfs/share1    nfs     sync,sec=krb5p 	0 0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# mount -a
+
+Automounting with autofs ...
+# yum -y install autofs
+# systemctl enable autofs
+# systemctl start autofs
+# vim /etc/auto.master.d/nfs.aoutofs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+/mnt/nfs/			/etc/auto.nfs
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# vim /etc/auto.nfs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+share1				-sync,sec=krb5p		server0.example.com:/share1
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Automounting direct option ...
+# vim /etc/auto.master.d/direct.aoutofs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+/-					/etc/auto.direct
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# vim /etc/auto.direct
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+/mnt/nfs/share1		-sync,sec=krb5p		server0.example.com:/share1
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Automounting home directories ...
+# vim /etc/auto.master.d/homes.aoutofs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+/home/guests		/etc/auto.homes
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# vim /etc/auto.homes
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+*					-sync,sec=krb5p		server0.example.com:/home/guests/&
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+To activate changes:
+# systemctl restart autofs
+
+Automounting with Systemd ...
+# vim /etc/fstab
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+server0.example.com:/share1		/mnt/nfs/share1		nfs		sync,noauto,x-systemd.automount 		0 0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# systemctl daemon-reload
+# systemctl restart mnt-nfs-share1.automount
+
+SAMBA (SMB CIFS)
+================
+
+Doc: mount.cifs(8), smbclient(1), auto.master(5)
+
+
+Packages: 	cifs-utils			# required
+			autofs				# required for automounting
+			samba-client		# recommended
+
+Configuration:
+/etc/fstab
+/etc/auto.master.d/*.aoutofs
+/etc/auto.*
+
+# yum -y install cifs-utils samba-client
+# mkdir -p /mnt/smb/share1
+$ smbclient -L //server0										# What is exported here
+$ smbclient //server0											# Acess server in a FTP-like fashion
+smb: \> ...
+smb: \> quit
+# mount -t cifs -o guest //server0/share1 /mnt/smb/share1		# Access as guest
+# mkdir -m700 /secure ; tocuh /secure/server0.creds ; chmod 600 /secure/server0.creds
+# vim /secure/server0.creds 
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+username=smbuser1
+password=redhat123
+domain=WORKGROUP
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# mount -t cifs -o sync,credentials=/secure/server0.creds //server0/share1 /mnt/smb/share1
+# vim /etc/fstab
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+//server0/share1	/mnt/smb/share1		cifs	sync,credentials=/secure/server0.creds 		0 0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# mount -a
+
+Automounting with autofs ...
+# yum -y install autofs
+# systemctl enable autofs
+# systemctl start autofs
+# vim /etc/auto.master.d/smb.aoutofs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+/mnt/smb/			/etc/auto.smb
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# vim /etc/auto.smb
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+share1				-fstype=cifs,sync,credentials=/secure/server0.creds		://server0/share1
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# systemctl restart autofs
+
+Automounting with Systemd ...
+# vim /etc/fstab
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+//server0/share1		/mnt/smb/share1		cifs		sync,noauto,x-systemd.automount,creds=/secure/server0.creds 	0 0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# systemctl daemon-reload
+# systemctl restart mnt-smb-share1.automount
+
+
+TROUBLESHOOTING BOOT PROCESS
+============================
+
+
+
+
+
+FIREWALLD
+=========
+
+Doc: firewalld.zone(5), iptables(),
+
+Packages: firewalld
+
+Configuration:
+/etc/firewalld
+/run/firewalld
+/usr/lib/firewalld
+
+To choose a zone (and firewall rules):
+1. For each zone: 
+	If Source IP adress is on 'sources:' --> Assign this zone
+2. If no zone has been selected,
+	For each zone: 
+		If incoming interface is on 'intefaces:' --> Assign this zone
+3. If no zone has been selected, 
+	Use the default zone 
+	
+To prevent problems, mask conflicting services:	
+# systemctl mask iptables ip6tables ebtables
+		
+Default services definitions: /usr/lib/firewalld/services/*.xml 
+To customoize a service:
+# cp /usr/lib/firewalld/services/https.xml /etc/firewalld/services/
+# vim /etc/firewalld/services/https.xml	
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Secure WWW (HTTPS)</short>
+  <description>HTTPS is a modified HTTP used to serve ...</description>
+  <port protocol="tcp" port="4443"/>
+</service>
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# systemctl restart firewalld	
+
+# firewall-cmd --get-zones
+# firewall-cmd --get-active-zones
+# firewall-cmd --get-default-zone
+# firewall-cmd --set-default-zone=public
+# firewall-cmd --list-all
+# firewall-cmd --list-all --zone=dmz
+# firewall-cmd --list-all-zones
+
+# firewall-cmd --permanent --add-source=10.0.2.100/16 
+# firewall-cmd --permanent --change-source=170.250.0.0/24 --zone=trusted 
+# firewall-cmd --permanent --add-interface=eth2
+# firewall-cmd --permanent --change-interface=eth2 --zone=external
+# firewall-cmd --permanent --add-service=http 
+# firewall-cmd --permanent --add-port=8080/tcp
+# firewall-cmd --reload
+
+# firewall-cmd --permanent --remove-source=10.0.2.100/16 --zone=trusted 
+# firewall-cmd --permanent --remove-interface=eth2 --zone=external
+# firewall-cmd --permanent --remove-service=http 
+# firewall-cmd --permanent --remove-port=8080/tcp
+# firewall-cmd --reload
+
+# firewall-cmd --timeout=300 --add-service=httpd		# Rule will die in 5 min
+
+(Module is incomplete!!!)
