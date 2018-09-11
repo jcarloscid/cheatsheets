@@ -1,0 +1,606 @@
+
+   .----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .----------------. 
+   | .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
+   | |     ____     | || |  _______     | || |      __      | || |     ______   | || |   _____      | || |  _________   | |
+   | |   .'    `.   | || | |_   __ \    | || |     /  \     | || |   .' ___  |  | || |  |_   _|     | || | |_   ___  |  | |
+   | |  /  .--.  \  | || |   | |__) |   | || |    / /\ \    | || |  / .'   \_|  | || |    | |       | || |   | |_  \_|  | |
+   | |  | |    | |  | || |   |  __ /    | || |   / ____ \   | || |  | |         | || |    | |   _   | || |   |  _|  _   | |
+   | |  \  `--'  /  | || |  _| |  \ \_  | || | _/ /    \ \_ | || |  \ `.___.'\  | || |   _| |__/ |  | || |  _| |___/ |  | |
+   | |   `.____.'   | || | |____| |___| | || ||____|  |____|| || |   `._____.'  | || |  |________|  | || | |_________|  | |
+   | |              | || |              | || |              | || |              | || |              | || |              | |
+   | '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
+   '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'    
+
+
+    __ ___                          _     _ _            _                     ____                       _               
+   /_ |__ \          /\            | |   (_) |          | |                   / __ \                     (_)              
+    | |  ) |___     /  \   _ __ ___| |__  _| |_ ___  ___| |_ _   _ _ __ ___  | |  | |_   _____ _ ____   ___  _____      __
+    | | / // __|   / /\ \ | '__/ __| '_ \| | __/ _ \/ __| __| | | | '__/ _ \ | |  | \ \ / / _ \ '__\ \ / / |/ _ \ \ /\ / /
+    | |/ /| (__   / ____ \| | | (__| | | | | ||  __/ (__| |_| |_| | | |  __/ | |__| |\ V /  __/ |   \ V /| |  __/\ V  V / 
+    |_|____\___| /_/    \_\_|  \___|_| |_|_|\__\___|\___|\__|\__,_|_|  \___|  \____/  \_/ \___|_|    \_/ |_|\___| \_/\_/  
+                                                                                                                          
+                                                                                                                          
+   
+    e88~-_  888                            d8          888                            d8   
+   d888   \ 888-~88e  e88~~8e    /~~~8e  _d88__  d88~\ 888-~88e  e88~~8e   e88~~8e  _d88__ 
+   8888     888  888 d888  88b       88b  888   C888   888  888 d888  88b d888  88b  888   
+   8888     888  888 8888__888  e88~-888  888    Y88b  888  888 8888__888 8888__888  888   
+   Y888   / 888  888 Y888    , C888  888  888     888D 888  888 Y888    , Y888    ,  888   
+    "88_-~  888  888  "88___/   "88_-888  "88_/ \_88P  888  888  "88___/   "88___/   "88_/ 
+
+
+DOCUMENTATION
+=============
+
+Oracle Database documentation online:
+https://docs.oracle.com/en/database/
+
+By default latest version. But version can be selected at the product level.
+
+Oracle Learning Library (videos, tutorials, ...):
+http://www.oracle.com/goto/oll
+
+ORACLE VERSIONS MAJOR MILESTONES
+--------------------------------
+
+Oracle  9i RAC (Real Application Cluster) cluster for availability 
+Oracle 10g Grids of low-cost hardware and storage
+Oracle 11g Managing change accross the enterprise
+Oracle 12g Enterprise Manager Cloud Control and database consolidation accross the enterprise
+
+ORACLE DATABASE ARCHITECTURE OVERVIEW
+=====================================
+
+- Oracle Database (Storage)
+- Oracle Instance (Memory + Processes)
+	* SGA System Global Area
+	* Server processes 
+- User Process (Client computer) 	
+- Server Process (Server computer)
+	* Program Global Area
+
+                                             +--------------------------------------------------+
+                                             |                                                  |
+         +---+                               |                    INSTANCE                      |
+         |PGA|         .+--+.                |                                                  |
+         +---+         + == +                |  +--------------------------------------------+  |
+      _.+------+._     +----+ +------------> |  |                                            |  |
+    .+   Server   +.   | == |                |  |                                            |  |
+     +_  Process _+    +----+                |  |            System Global Area              |  |
+       ~+-+--+-+~      |::::| +------+       |  |                    SGA                     |  |
+          ^  |         +___.+        |       |  |                                            |  |
+          |  |         "    "        |       |  |             Memory Structures              |  |
+          |  |                       |       |  |                                            |  |
+          |  |         SERVER        |       |  |                                            |  |
+          |  |                       |       |  |                                            |  |
+          |  |                       |       |  +--------------------------------------------+  |
+          |  |                       |       |                                                  |
+          |  |                       |       |               Process Structures                 |
+          |  |                       |       |     _.+---+._       _.+---+._       _.+---+._    |
+          |  |                       |       |   .+         +.   .+         +.   .+         +.  |
+          |  |                       |       |    +_       _+     +_       _+     +_       _+   |
+          |  |                       |       |      ~+---+~         ~+---+~         ~+---+~     |
+          |  |                       |       +--------------------------------------------------+
+          |  |                       |
+          |  |                       |       +--------------------------------------------------+
+          |  |                       |       |                                                  |
+          |  |                       |       |     _.+---+._       _.+---+._       _.+---+._    |
+          |  |        .+-------+.    +-----> |   .+         +.   .+         +.   .+         +.  |
+          |  |        +.+"""""+.+            |   ++_       _++   ++_       _++   ++_       _++  |
+      _.+-+--v-+._    ++       ++            |   |  ~+---+~  |   |  ~+---+~  |   |  ~+---+~  |  |
+    .+    User    +.  ++       ++            |   +           +   +           +   +           +  |
+     +_  Process _+   +'+.....+'+            |   `._       _.'   `._       _.'   `._       _.'  |
+       ~+------+~     `"")+-+(""`            |      "+---+"         "+---+"         "+---+"     |
+                     /:::::::::::\  _        |                                                  |
+          CLIENT    /:::=======:::\`\`\      |           DATABASE (Storage Structures)          |
+                    `"""""""""""""`  '+'     |                                                  |
+                                             +--------------------------------------------------+
+											 
+
+CONNECTION: Communication pathway between a user process and the instance
+SESSION: Specific connection of a user to an instance through a user process (session data/status)
+											 
+ORACLE DATABASE INSTANCE CONFIGURATION
+--------------------------------------
+
+          NONCLUSTERED SYSTEM                                       CLUSTERED SYSTEM
+    
+                         .+--+.                           .+--+.        .+--+.        .+--+.
+                         + == + +----+                    + == +        + == +        + == +
+                         +----+ | I1 |                    +----+        +----+        +----+
+    +----+   _.+---+._   | == | +----+                    | == |        | == |        | == |
+    | D1 | .+         +. +----+ +----+                    +----+ +----+ +----+ +----+ +----+ +----+
+    +----+ ++_       _++ |::::| | I2 |                    |::::| | I1 | |::::| | I2 | |::::| | I3 |
+    +----+ |  ~+---+~  | +___.+ +----+                    +___.+ +----+ +___.+ +----+ +___.+ +----+
+    | D2 | +           + "    "                           "    "        "    "        "    "
+    +----+ `._       _.'                                    +              +             +
+              "+---+"                                       +----------------------------+
+           Local Storage                                                   |
+                                                                           |
+                                                                       _.+---+._
+                                                                     .+  +----+ +.
+                                                                     ++_ | D0 |_++
+                                                                     |  ~+----+  |  Shared
+                                                                     +           +  Storage
+                                                                     `._       _.'
+                                                                        "+---+"
+
+- Each Instance is associated with only one physical Database.
+- RAC (Real Application Cluster): Multiple Instances on separate Servers accessing the same shared physical Database.
+
+ORACLE DATABASE MEMORY STRUCTURES
+---------------------------------
+
+                    +--------------------+                    +--------------------+
+                    | +------+  +------+ |                    | +------+  +------+ |
+                    | |Stack |  | User | |                    | |Stack |  | User | |
+                    | |space |  |global| |                    | |space |  |global| |
+                    | |      |  | area | |                    | |      |  | area | |
+                    | +------+  +------+ |                    | +------+  +------+ |
+         _.+------+.|Program Global Area |         _.+------+.|Program Global Area |
+       .+   Server  +--------------------+       .+   Server  +--------------------+
+        +_ process 1_+                            +_ process 2_+
+          ~+---+--+~                                ~+---+--+~
+               |                                         |
+               |                                         |
+    +----------------------------------------------------v-------------+
+    | +---------------+  +-------------------------+                   |
+    | |               |  |                         |    _.+------+._   |
+    | |               |  |        Database         |  .+  REDO log  +. |
+    | |    Shared     |  |         buffer          |   +_  buffer  _+  |
+    | |     pool      |  |         cache           |     ~+------+~    |
+    | |               |  |                         |                   |
+    | +---------------+  +-------------------------+                   |
+    | +---------------+  +----------+  +-----------+  +--------------+ |
+    | | Large pool    |  |   Java   |  |  Streams  |  | Fixed SGA    | |
+    | |               |  |   pool   |  |   pool    |  |              | |
+    | +---------------+  +----------+  +-----------+  +--------------+ |
+    |                                                                  |
+    |                     SGA (System Global Area)                     |
+    +------------------------------------------------------------------+
+
+Data and control information:	
+- SGA (System Global Area): Shared memory for the entire instance (server and background processes). 
+	* Shared pool: caches of variuos constructs shared among users
+	* Database buffer cache: caches block of data retrieved from the physical database
+	* Redo log buffer: redo information (instance recovery) before being written to REDO log files
+	* Large pool: memory allocation for large process (eg: backup and recovery operations)
+	* Java pool: used by the JVM 
+	* Streams pool: used by Oracle Streams
+	* Fixed SGA: general information of the state of the database and the instance
+- PGA (Program Global Area): Non-shared. Owned by a single server or backgroud process.
+	* Stack space
+	* User global area
+	
+Dynamic SGA Management: adjust memory areas sizes as required, without instance restart. Parameters:
+	MEMORY_TARGET: Target total memory size to be used by the instance (all areas)
+	MEMORY_MAX_TARGET: Maximum total memory size to be used by the instance (all areas)
+	
+PROCESS ARCHITECTURE
+--------------------
+
+                                     +-------------------------------------------------------------------------------+
+                                     |                                    Instance                                   |
+                                     |  +-------------------------------------------------------------------------+  |
+                                     |  |                            System Global Area                           |  |
+                              +---+  |  |                                    SGA                                  |  |
+                   _.+------+.|PGA|  |  +-------------------------------------------------------------------------+  |
+         +------>.+   Server  +---+  |                              Background processes                             |
+         |        +_  Process _+     |    _.+---+._     _.+---+._     _.+---+._     _.+---+._     _.+---+._          |
+         |          ~+-+--^-+~       |  .+  DBWn   +. .+  CHKPT  +. .+  LGWR   +. .+  SMON   +. .+  PMON   +.        |
+      _.++-----+._     |  |          |   +_       _+   +_       _+   +_       _+   +_       _+   +_       _+         |
+    .+  Listener  +.<--+  |          |     ~+---+~       ~+---+~       ~+---+~       ~+---+~       ~+---+~     ...   |
+     +_          _+       |          |        _.+---+._     _.+---+._     _.+---+._     _.+---+._     _.+---+._      |
+       ~+ ^--+-+~         |          |      .+  RECO   +. .+  LREG   +. .+  MMON   +. .+  MMNL   +. .+  ARCn   +.    |
+          |  |            |          |       +_       _+   +_       _+   +_       _+   +_       _+   +_       _+     |
+          |  |            |          |         ~+---+~       ~+---+~       ~+---+~       ~+---+~       ~+---+~       |
+          |  |            |          +-------------------------------------------------------------------------------+
+          |  |            |          +-------------------------------------------------------------------------------+
+          |  |            |          |                          Grid Infrastructure Processes                        |
+          |  |            |          |                             (ASM and Oracle Restart)                          |
+          |  |            |          |    _.+------+._            _.+------+._            _.+------+._               |
+          |  |            |          |  .+   ohasd    +.        .+   ocssd    +.        .+  diskmon   +.             |
+          |  |            |          |   +_          _+          +_          _+          +_          _+              |
+      _.+-+--v-+._        |          |     ~+------+~              ~+------+~              ~+------+~                |
+    .+    User    +.<-----+          |               _.+------+._             _.+------+._            _.+------+._   |
+     +_  Process _+                  |             .+  oraroot   +.         .+  oraagent  +.        .+  cssdagent +. |
+       ~+------+~                    |              +_ agent    _+           +_          _+          +_          _+  |
+                                     |                ~+------+~               ~+------+~              ~+------+~    |
+                                     +-------------------------------------------------------------------------------+
+								 
+- User process: Connects to the Oracle database.
+	* Applications
+	* Oracle utilities: sqlplus, sqldeveloper, ...
+- Database process: Run Oracle Database server code.
+	* Server process: Connects to the database instance. Started when a user starts a session.
+		> Dedicated server: One process for each session
+		> Shared server: One server process attends to several different sessions. For each user request, a dispacher redirects the request to a server process on a pool.
+	* Background process: Started when the database instance is started (other started as required). More important processes:
+		> DBWn: Database writer processes (data blocks) 
+		> CHKPT: Checkpoint process
+		> LGWR: Log writer process  
+		> SMON: System monitor process
+		> PMON: Process monitor process
+		> RECO: Recoverer process
+		> LREG: Listener registration process
+		> MMON: Manegeability monitor process
+		> MMNL: Manegeability monitor lite process
+		> ARCn: Archiver processes
+		> CJQ0: Job queue coordinator
+		> Jnnn: Job slave processes 
+		> QMNn: Queue monitor processes
+		> PSP0: The process spawner process
+		> ...
+- Daemons and application processes: Shared among all instances on each DB server
+	* Network listeners: Listen to user incoming connections and creates the server process that will attend the new session.
+		> One listener for each connection type.
+	* Grid infrastructure daemons: 
+		> ohasd: Oracle High Availability Service Daemon. Responsible for starting clusterware process.
+		> ocssd: Oracle Cluster Synchronization Service Daemon
+		> diskmon: Disk monitor daemon. I/O fencing for Oracle Exadata Storage
+		> oraagent: Supports clusterware to manage server resources
+		> orarootagent: Specialized agent to manage resources owned by root (eg. network)
+		> cssdagent: Start stops and monitors occsd daemon.
+		
+DATABASE STORAGE ARCHITECTURE
+-----------------------------		
+
+Types of files used by a database:
+- Control files: One for each database. Describes the structure of the database (physical structure) itself. Checkpoints. Contains metadata for backups. Multiples copies mantained to prevent total loss. Without a control file database cannot be mounted or opened.
+- Data files: Data dictionary. Metadata. User and application data. At least one for each Tablespace. 
+- Online REDO log files: Used for database recovery. Can resync datafiles from a previous checkpoint. Can recover a database server crash if datafiles are not lost.
+- Archived REDO log files: Used to recover a lost data file using a backup and the history of changes performed over it (archived + online REDO logs).
+- Parameter file: Instance configuration on start-up.
+- Password file: Allow users with SYSDBA, SYSOPER, SYSBACKUP, SYSDG, SYSKM, SYSASM roles to connect remotely to the instance.
+- Backup files: Used for database recovery when data or control files are lost.
+- Alert log: Chronological log of alerts and errors. Required for troubleshooting and for proactive system maintenance.
+- Trace files: Dump internal information when a process crashes. Required for troubleshooting.
+
+
+    +---------------------+     +----------------------------------+
+    |    L O G I C A L    |     |          P H Y S I C A L         |
+    |                     |     |                                  |
+    |  +---------------+  |     |                                  |
+    |  |    Database   |  |     |                                  |
+    |  +---------------+  |     |                                  |
+    |         /|\         |     |         +---------------+        |
+    |  +---------------+  |     |       / |               |        |
+    |  |  Tablespace   +------------------+   Data file   |        |
+    |  +---------------+  |     |       \ |               |        |
+    |         /|\         |     |         +-------+-------+        |
+    |  +---------------+  |     |                 |                |
+    |  |    Segment    |  |     |  +--------------v--------------+ |
+    |  +---------------+  |     |  |       Storage System        | |
+    |         /|\         |     |  |                             | |
+    |  +---------------+  |     |  | * SAN            * NFS      | |
+    |  |     Extent    |  |     |  |                             | |
+    |  +---------------+  |     |  | * NAS            * ASM      | |
+    |         /|\         |     |  |                             | |
+    |  +---------------+  |     |  | * Exadata                   | |
+    |  |  Oracle data  |  |     |  |                             | |
+    |  |     block     |  |     |  | * File system               | |
+    |  +---------------+  |     |  +-----------------------------+ |
+    +---------------------+     +----------------------------------+
+
+- A Database contains two or more Tablespaces
+- Objects in the database are physically stored into a Tablespace
+- Each Tablespace uses a data block size (8K, 16K, 32K, ....)
+- A Extent is a contiguous number of data blocks obtained in a single allocation. A Extent resides on a single data file. 
+- A Segment is a set of extentS used for certain logical structure. When all the extents of a segment are full, a new extent is dinamically allocated. More common types:
+	* Data segments: for tables' data
+	* Index segments: for tables' indexes
+	* UNDO segments: for UNDO information. Each database contains a UNDO Tablespace with several UNDO segments. Used for read-consistency and database recovery to roll-back uncommited transactions.
+	* Temporary segment: for temporary work areas required during the execution of some statements. 
+	
+    +-----------------------------------------------------------------------+
+    |                                                                       |
+    |               +--------------------------------------+                |
+    |               |   Data Segment for Table 'MyTable'   |                |
+    |   +-----------------------------+  +-----------------------------+    |
+    |   |           | +-------------+ |  | +-------------+ |           |    |
+    |   |           | | Extent 64KB | |  | | Extent 64KB | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | |8KB| |8KB| | |  | | |8KB| |8KB| | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | |8KB| |8KB| | |  | | |8KB| |8KB| | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | |8KB| |8KB| | |  | | |8KB| |8KB| | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | | |8KB| |8KB| | |  | | |8KB| |8KB| | |           |    |
+    |   |           | | +---+ +---+ | |  | | +---+ +---+ | |           |    |
+    |   |           | +-------------+ |  | +-------------+ |           |    |
+    |   |           +--------------------------------------+           |    |
+    |   |                             |  |                             |    |
+    |   |                             |  |                             |    |
+    |   |                             |  |                             |    |
+    |   |                             |  |                             |    |
+    |   |                             |  |                             |    |
+    |   |         Data file 1         |  |        Data file 2          |    |
+    |   +-----------------------------+  +-----------------------------+    |
+    |                                                                       |
+    |                                                                       |
+    |                    U S E R   T A B L E S P A C E                      |
+    +-----------------------------------------------------------------------+
+
+- BIGFILE Tablespace: Only one datafile allowed <= 128 TB (Reduces space allocation management but do not allow parallel write)	
+- SMALLFILE Tablespace: (Default) A Tablespace can contain several data files. Files can not be as large as bigfiles.
+- SYSTEM and SYSAUX Tablespaces: Required. Created with the database. Used to store core and auxiliary Oracle functionality as the Data Dictionary. Should not be used to store user/application data. 
+	* SYSTEM Always online (database open). Shouldn't be read only. 
+	* SYSAUX should be online for the correct functioning of all components. Might be offline for recovery. Shouldn't be read only.
+	
+USER ACCOUNTS
+-------------
+
+A database user (a person or an application) account contains:
+- User name (unique, ID) [max 30 chars staring with a letter]
+- Authentication method (tipically a password)
+- Default tablespace (requires to GRANT usage and a quota)
+- Temporary tablespace (no quota)
+- User Profile: Resources and password restrictions assigned to a user.
+- Initial consumer group: Used by resource manager.
+- Account status (open/locked/expired)
+
+A Schema: A collection of objects that are owned by a single database user. Has the same name as the user account.
+
+Default administrative user accounts:
+- SYS: Owns the data dictionary and the Automatic Workload Repository (AWR) (SYSDBA)
+- SYSTEM: Owns additional administrative tables and views (no SYSDBA)
+- SYSBACKUP: RMAN backup and recovery operqations (Oracle Recovery Manager)
+- SYSDG: Oracle Data Guard operations
+- SYSKM: Transparent Data Encryption wallet operations
+
+Privilege 	Description
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SYSDBA 		Standard database operations, such as starting and shutting down the database instance, creating the server parameter file (SPFILE), and changing the ARCHIVELOG mode
+			Allows the grantee to view user data
+SYSOPER 	Standard database operations, such as starting and shutting down the database instance, creating the server parameter file (SPFILE), and changing the ARCHIVELOG mode
+SYSBACKUP 	Oracle Recovery Manager (RMAN) backup and recovery operations by using RMAN or SQL*Plus
+SYSDG 		Data Guard operations by using the Data Guard Broker or the DGMGRL command-line interface
+SYSKM 		Manage Transparent Data Encryption wallet operations
+
+A TYPICAL TRANSACTION WORKFLOW
+------------------------------
+
+1. Database instance is started on the server.
+2. The user start a user process (eg. sqlplus) that attempts to connect to the server.
+3. The server runs a listener and detects the connection. It creates a dedicated server process on behalf of the user process.
+4. The user runs a SQL statement and commits the transaction.
+5. The server process checks the shared pool for an identical SQL statement. If not found a new shared area is created and the statement is parsed. Then (or if found) user privileges to access the data are cheched. 
+6. The server process retrieves the required data from the data files or (if used recently) from the database buffer cache.
+7. The server process modifies the data on the database buffer cache.
+8. As transaction is commited, the log writer (LGWR) records the transaction in the REDO log file.
+9. The database writer process (BDWn) writes updated blocks from the cache to the disk when it is efficient to do so.
+10. The server process sends to the user process the status of the transaction (success/error).
+
+MULTITENANT ARCHITECTURE
+------------------------
+
+- CDB: Multitenant container database
+	* Introduced on Oracle Database 12c
+	* Has a database instance and database files at the physical level
+- PDB: Pluggable database
+	* Database consolidated into a CDB. Is not a separate instance.
+	* Set of schemas that appear to users and applications as a separate database.
+- All pluggable databases and the root container (CDB) share: 
+	* Background processes
+	* Shared memory area 
+	* Oracle metadata 
+	* REDO log files, Control files, UNDO Tablespace
+- Each CDB/PDB has its own SYSTEM and SYSAUX tablespaces. 
+- A TEMP tablespace is required at the CDB level, but PDBs usually has a local TEMP tablespace for local users.
+- Seed PDB is used to populate new PDBs.
+				
+				
+                                   +-----------------------------------------------------------------------------------------------+
+                                   |                                         I N S T A N C E                                       |
+                                   |  +-----------------------------------------------------------------------------------------+  |
+                                   |  |                                    System Global Area                                   |  |
+    SERVER +--------------+        |  |                                            SGA                                          |  |
+    .+--+. |   Instance   +-------->  +-----------------------------------------------------------------------------------------+  |
+    + == + +--------------+        |                                        Process Structures                                     |
+    +----+ +--------------+        |     _.+---+._       _.+---+._       _.+---+._      _.+---+._      _.+---+._      _.+---+._    |
+    | == | |              |        |   .+         +.   .+         +.   .+         +.  .+         +.  .+         +.  .+         +.  |
+    +----+ |  Container   |        |    +_       _+     +_       _+     +_       _+    +_       _+    +_       _+    +_       _+   |
+    |::::| |   Database   |        |      ~+---+~         ~+---+~         ~+---+~        ~+---+~        ~+---+~        ~+---+~     |
+    +___.+ |              |        +-----------------------------------------------------------------------------------------------+
+    "    " +------+-------+        +-----------------------------------------------------------------------------------------------+
+                  |                | +-------------------------------------------------------------------------------------------+ |
+                  |                | |         D A T A   F I L E S                                        REDO Log Files         | |
+                  |                | |   _.+---+._            _.+---+._            Control                  .+---+.              | |
+                  |                | | .+         +.        .+         +.           Files                  +._____.'             | |
+                  |                | | ++_       _++        ++_       _++                                  |       +             | |
+                  |                | | |  ~+---+~  |        |  ~+---+~  |          .+---+.                 |       |             | |
+                  |                | | +  SYSTEM   +        +    UNDO   +         +._____.'                +  .+---+.            | |
+                  |                | | `._       _.'        `._       _.'         |       +                 "+._____.'           | |
+                  |                | |    "+---+"              "+---+"            |       |                  |       +           | |
+                  |                | |   _.+---+._            _.+---+._           +  .+---+.                 |       |           | |
+                  |                | | .+         +.        .+         +.          "+._____.'                +   .+--++.         | |
+                  |                | | ++_       _++        ++_       _++           |       +                 "++._____.'        | |
+                  |                | | |  ~+---+~  |        |  ~+---+~  |           |       |                   |       +        | |
+                  |                | | +  SYSAUX   +        +    TEMP   +           +       +                   |       |        | |
+                  |                | | `._       _.'        `._       _.'            "+---+"                    +       +        | |
+                  |                | |    "+---+"              "+---+"                                           "+---+"         | |
+                  |                | |                        R O O T    C O N T A I N E R    D A T A B A S E                    | |
+                  |                | +--------------^----------------------------^--------------------------------^--------------+ |
+                  +---------------->                |                            |                                |                |
+                                   | +--------------+----------+ +---------------+--------------+ +---------------+--------------+ |
+                                   | |   _.+---+._             | |   _.+---+._      _.+---+._   | |   _.+---+._                  | |
+                                   | | .+         +.           | | .+         +.  .+         +. | | .+         +.    .+---+.     | |
+                                   | | ++_       _++           | | ++_       _++  ++_       _++ | | ++_       _++   +._____.'    | |
+                                   | | |  ~+---+~  |           | | |  ~+---+~  |  |  ~+---+~  | | | |  ~+---+~  |   |       +    | |
+                                   | | +  SYSTEM   +  .+---+.  | | +  SYSTEM   +  +  SALESTS  + | | +  SYSTEM   +   | TEMP  |    | |
+                                   | | `._       _.' +._____.' | | `._       _.'  `._       _.' | | `._       _.'   +       +    | |
+                                   | |    "+---+"    |       + | |    "+---+"        "+---+"    | |    "+---+"       "+---+"     | |
+                                   | |   _.+---+._   | TEMP  | | |   _.+---+._        .+---+.   | |   _.+---+._       _.+---+._  | |
+                                   | | .+         +. +       + | | .+         +.     +._____.'  | | .+         +.   .+         +.| |
+                                   | | ++_       _++  "+---+"  | | ++_       _++     |       +  | | ++_       _++   ++_       _+-+ |
+                                   | | |  ~+---+~  |           | | |  ~+---+~  |     | TEMP  |  | | |  ~+---+~  |   |  ~+---+~  || |
+                                   | | +  SYSAUX   +           | | +  SYSAUX   +     +       +  | | +  SYSAUX   +   +  HRTS001  ++ |
+                                   | | `._       _.'           | | `._       _.'      "+---+"   | | `._       _.'   `._       _.'| |
+                                   | |    "+---+"              | |    "+---+"                   | |    "+---+"         "+---+"   | |
+                                   | |         Seed PDB        | |          Sales PDB           | |            HR PDB            | |
+                                   | +-------------------------+ +------------------------------+ +------------------------------+ |
+                                   +-----------------------------------------------------------------------------------------------+
+
+								   
+AUTOMATIC STORAGE MANAGEMENT (ASM)
+----------------------------------
+
+- Is a cluster file system
+	* Single symetric multiprocessing (SMP) machine
+	* Nodes of a Real Application Cluster
+- Can manage Oracle database files (data files, control files, ...)
+- Can manage Application files with ASM Cluster File System (ACFS)
+- Spread data accross disks to balance I/O load
+- Can mirror data for fault tolerance
+
+                                                                  +-------------+ +--------------+
+                                                                  |             | |    Oracle    |
+                                                                  | Application | |   Database   |
+                                                                  |             | |              |
+                                                                  +-------+-----+ +------+-------+
+                                                                          |              |
+                                                                  +------------------------------+
+                                                                  |       |              |       |
+                                                                  | +-----v-----+ +------v-----+ |
+                                                                  | |ASM Cluster| |            | |
+                                                                  | |    File   | |            | |
+                                                                  | |   System  | |            | |
+                                                                  | +-----------+ | ASM Files  | |
+                                                                  | +-----------+ | for Oracle | |
+                                                                  | |ASM Dynamic| | Database   | |
+                                                                  | |   Volume  | |            | |
+                                                                  | |  Manager  | |            | |
+                                                                  | +-----------+ +------------+ |
+                                                                  | Automatic Storage Management |
+                                                                  +------------------------------+
+                                                                  +------------------------------+
+                                                                  |      Operating System        |
+                                                                  +------------------------------+
+
+Managed as a lightweight database instance (ASM instance) but with NO database (control files, data files, ...).
+
+The SGA in the ASM instance is divided into four primary areas:
+- Shared Pool: Used for metadata information
+- Large Pool: Used for parallel operations
+- ASM Cache: Used for reading and writing blocks during rebalance operations
+- Free Memory: Unallocated memory available
+
+Automatic Memory Management is enabled. Minimum 256 MB SGA. Total size depdnes on the amount of disk space managed.
+	
+ASM Instance Primary Processes:	
+	
+Process 	Description
+--------------------------------------------------------------------------------------------------------------------------------------
+RBAL 		Opens all device files as part of discovery and coordinates the rebalance activity
+ARBn 		One or more slave processes that do the rebalance activity
+GMON 		Responsible for managing the disk-level activities such as drop or offline and advancing the ASM disk group compatibility
+MARK 		Marks ASM allocation units as stale when needed
+Onnn 		One or more ASM slave processes forming a pool of connections to the ASM instance for exchanging messages
+
+ASM Instance Oracle-like Processes:	(not performing the exact same function)
+
+Process 	Description
+--------------------------------------------------------------------------------------------------------------------------------------
+ARCn 		The archiver processes
+CKPT 		The checkpoint process
+DBWn 		The database writer processes
+DIAG 		The diagnosability process
+Jnnn 		Job queue processes
+LGWR 		The log writer process
+PMON 		The process monitor process
+PSP0 		The process spawner process
+QMNn 		The queue monitor processes
+RECO 		The recoverer process
+SMON 		The system monitor process
+VKTM 		The virtual keeper of time process
+MMAN 		The memory manager process
+LREG 		The listener registration process
+
+ASM CLUSTERED Instance Additional Processes:	
+
+Process 	Description
+--------------------------------------------------------------------------------------------------------------------------------------
+LMON 		The global enqueue service monitor process
+LMDn 		The global enqueue service daemons
+LMSn 		The global cache service processes
+LCKn 		The lock processes
+
+Sample work flow for a new file creation request whenusing ASM:
+1. Database instance request file allocation 
+2. An ASM process allocates space for the new file accross the disk group (COD Continuing Operation Directory entry)
+3. Database instance ASMB process receives an extent map for the new file
+4. Database instance opens and initializes the file directly
+5. Database instance commits file creation. File is marked as created and COD entry is cleared
+6. ASM acknowledge file creation commit. Database instance needs to reopen the file for future I/O
+7. The database instance performs directly I/O operations over ASM files
+
+ORACLE NET SERVICES
+-------------------
+
+    Client or Middle Tier                                                Database Server
+       .+-------+.
+       +.+"""""+.+                                                          .+-----+.
+       ++       ++                                                          + ===== +
+       ++       ++                                                          +-------+
+       +'+.....+'+                                                          | ===== |
+       `"")+-+(""`                                                          +-------+
+      /:::::::::::\  _                                                      |:::::::|
+     /:::=======:::\`\`\                                                    +______.+
+     `"""""""""""""`  '+'                                                   "       "
+    +-------------------+        TCP/IP Network        +----------+    +-------------------+
+    |    Application    +------------------------------>          |    |       RDBMS       |
+    +-------------------+                              | Listener |    +-------------------+
+    |    Oracle Net     |                              |          +---->    Oracle Net     |
+    +-------------------+                              +----------+    +-------------------+
+         _.+---+._                                                           _.+---+._
+       .+ Oracle  +.                                                       .+ Oracle  +.
+       ++_  Net  _++                                                       ++_  Net  _++
+       |  ~+---+~  |                                                       |  ~+---+~  |
+       +  config.  +                                                       +  config.  +
+       `._ files _.'                                                       `._ files _.'
+          "+---+"                                                             "+---+"
+    
+- Oracle Net Services connects an external client application or a middle tier to the Oracle Server through a transport layer as a TCP/IP network.
+- Establishes and maintains the connection. Exchanges messages between client and server. 
+- Is located on any client computer that needs to connect to the database. JDBC simulates Oracle Net.
+- Oracle Net Services is also used to access external code libraries (EXTPROC) and non-Oracle data sources trough Oracle Heterogeneous Services.
+- The server side has an active process called Oracle Net Listener.
+- The listerner is a gateway for all non-local user connections.
+- The same listener can serve all instances on the server and thousands of client connections.
+- Use Enterprise Manager Cloud Control or Oracle Net Manager to configure the listener
+- Configuration files (can also be edited manually):
+		$ORACLE_HOME/network/admin/listener.ora
+		$ORACLE_HOME/network/admin/sqlnet.ora 
+		
+ORACLE DATABASE [+ASM] MANAGEMENT TOOLS
+---------------------------------------
+
+- SQL*Plus
+	* Perform database management operations
+	* Execute SQL commands to query, insert, update, and delete data in your database
+	* Text based. Consider using SQL Command Line (SQLcl)
+- SQL Developer:
+	* Is a graphical user interface GUI
+	* Supports development in both SQL and PL/SQL
+- Oracle Enterprise Manager Database Express: 
+	* Lightweight administration tool for a single database (or cluster)
+	* Performance monitoring, configuration management, administration, diagnostics, and tuning.
+	* Web-based console, communicating with the built in web server available in XML DB.
+- Oracle Enterprise Manager Cloud Control:
+	* Browser based management tool for Oracle and non-Oracle components.
+	* Multi database, multi cluster, multi server.
+- Listener Control Utility (LSNRCTL): Controls the listener process (start/stop/status)
+- Oracle ASM Configuration Assistant (ASMCA): Used to install and configure Oracle ASM instances, disk groups, and volumes
+- Oracle ASM Command-Line Utility (ASMCMD): Used to manage Oracle ASM instances, disk groups, and volumes
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<----------------------------------------------------------------------------------------------# END OF CHEATSHEET #---------------------------------------------------------------------------------------------->>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ASCII art: 	http://asciiflow.com/ 
+			http://www.ascii-art.de/ascii/
+			http://patorjk.com/software/taag/
