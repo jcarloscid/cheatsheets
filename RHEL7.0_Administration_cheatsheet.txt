@@ -36,10 +36,1544 @@
    "88_-~  888  888  "88___/   "88_-888  "88_/ \_88P  888  888  "88___/   "88___/   "88_/ 
 
 
+   
+CONTENTS   
+========
+
+    Linux 101
+    Vim Text Editor
+    Grep Regular Expressions
+    Local User And Groups
+    Network Defined Users And Groups
+    File System Permissions
+    Access Control Lists - ACLS
+    Managing Linux Processes
+    Systemd
+    Managing Time
+    Managing System Logs
+    Moving And Backing Up Files
+    Accessing Remote Systems - OPENSSH
+    Install Software Packages
+    Kickstart
+    Scheduling Tasks (at, cron & anacron)
+    Temporary And Volatile Files
+    SELinux
+    Using Virtualized Systems
+
+    STORAGE
+        Disk Partitions And File Systems
+        LVM - Logical Volume Manager
+        Consuming NFS - Network File System
+        Providing NFS File Storage
+        Consuming Samba (SMB CIFS)
+        Providing SMB File Storage
+        iSCSI Block Storage
+
+    NETWORKING
+        Ipv4 Networking
+        Network Manager
+        Ipv6 Networking
+        Link Aggregation And Bridging
+        Network Address Translation
+        Firewalld
+
+    COMMON SERVICES
+        DNS - Domain Name System
+        Email Service
+        MariaDb Database Server
+        Apache Web Server
+        
+LINUX 101
+=========
+
+General purpose commands
+------------------------
+
+$ file /home /etc/passwd /bin/passwd        # Display file type
+$ head -n -5 /etc/passwd                    # Top lines (all except last 5)
+$ tail -6 /etc/passwd                       # Last 6 lines of the file (-n 6)
+$ tail -f /var/log/messages                 # Display last lines as they are generated (Ctrl+C to end)
+$ wc -l /etc/passwd                         # Count lines (-l), words (-w) or characters (-c)   
+$ date -Iseconds                            # Current date and time in ISO format
+$ date -d' +10 days'                        # What date us today plus 10 days?
+$ date -d' next friday'                     # What date is next friday?
+$ cd -                                      # Go back to previous folder
+$ mkdir -p /dir1/dir2/dir3                  # Creates entire path
+$ cp -r -a /etc /dir1                       # Copy directories including file attributes, acls, ...
+$ mv oldname newname                        # Rename file
+$ mv myfile /dir1/dir2/dir3                 # Reallocate file
+$ rm -fr /dir1                              # Remove evrything and don´t bother me
+$ pwd                                       # Print current working directory
+$ echo $PWD                                 # Print current working directory too
+$ ls | tee /tmp/flist | wc -w               # Pipeline. /tmp/flist contains the list of file names and the output is the number of files
+$ tty                                       # What is my current virtual terminal device?
+$ ln ./myfile ./some/path/myfile            # Hard link
+# ln -s /etc/passwd /root/users.txt         # Soft link /root/users.txt -> /etc/passwd
+
+Help me please!!!
+-----------------
+
+$ man man                                   # I'm totally lost
+$ man intro                                 # Let's start from the very beginning (there is an intro on all sections 1-8)
+$ man 5 resolv.conf                         # Get help from section 5 (file formats)
+$ man -k selinux                            # Avilable man pages for a topic (searchs short descriptions and manual page names only)
+$ man -K httpd_sys_content_t                # Display one by one man pages containing search text (full text page search)
+$ mandb                                     # Rebuild man database (after installing new packages, automated in cron.daily)
+
+                       /+-------------------------------------------------+\
+:::::::::::::::::::====|| Note: See section `more/less pagers navigation´ ||====:::::::::::::::::::
+                       \+-------------------------------------------------+/
+
+Manual pages  sections (extracted from $ man man):
+1. Executable programs or shell commands
+2. System calls (functions provided by the kernel)
+3. Library calls (functions within program libraries)
+4. Special files (usually found in /dev)
+5. File formats and conventions eg /etc/passwd
+6. Games
+7. Miscellaneous  (including  macro  packages  and  conventions)
+8. System administration commands (usually only for root)
+9. Kernel routines [Non standard]
+
+$ info coreutils                            # Extended system documentation - GNU info
+$ pinfo libc                                # Extended system documentation (better UI)
+
+$ cd /usr/share/doc                         # Additional documentation by package name
+$ firefox file:///usr/share/doc             # Explore documentation using a browser (text files)
+
+# yum list *-doc                            # Documentation packages bundled separately
+# yum list *-devel | grep selinux           # Developers info for SELinux
+
+$ firefox https://access.redhat.com/help/
+$ firefox https://developers.redhat.com/help/
+
+$ redhat-support-tool                       # requeires subscription to Red Hat Network
+$ redhat-support-tool kb 253273 | less      # A particular Knowledge base topic
+
+Most popular system folders
+---------------------------
+
+/usr        Installed software
+/etc        Configuration files
+/var        Data that should persist between reboots 
+/run        Runtime non-persistent data (just current boot)
+/home       Home diretory for regular users
+/root       Home directory for the super user
+/tmp        Temporary files
+/boot       Kernels, GRUB files, ... Boot process.
+/dev        Devices (disks, printers, console, terminals, ...)
+
+Path name expansion (globbing)
+------------------------------
+
+*           Any string 
+?           Any single character
+~           Current user's home directory
+~fred       Fred's home directory
+~+          Current working directory
+~-          Previous working directory
+[abccdefgh] Any character from the class 
+[a-h]       Any character from the class (as a range)
+[!abcdefgh] Any character except those in the class
+[^abcdefgh] Any character except those in the class
+[[:alpha:]] Any alphabethic character
+[[:lower:]] Any lower-case character
+[[:upper:]] Any upper-case character
+[[:digit:]] Digits 0-9
+[[:alnum:]] Any alphabetic character or digit
+[[:space:]] Any space character (tab, white space, new line, carriage return, form feed)
+[[:punct:]] A printable character, not a space ([[:space:]]) or alphanumeric ([[:alnum:]])
+
+Shell expansion
+---------------
+
+$ touch file{a..c}                          # filea fileb filec
+$ touch file{1..100}                        # file1 file2 ... file100
+$ mkdir -p /exports/resource_{a,b,c}        # /exports/resource_a /exports/resource_b /exports/resource_c
+$ touch file{a{1,2},b{3,4},c{5,6}}          # filea1 filea2 fileb3 fileb4 filec5 filec6
+$ `cat /etc/services`                       # All WORDS in file /etc/services
+$ $(ls)                                     # All file names on current working directory (this syntax is preferred)
+\<char>                                     # Do not expand <char> (eg. \$ )
+'...'                                       # Literal. Do not make any shell expansion
+"..."                                       # Literal but variables [$var] and command execution [$(cmd)] are expanded 
+
+Command History & Command line editing
+--------------------------------------
+
+$ history                                   # Last commands (current and previous sessions)
+$ !12                                       # Repeat the 12th command 
+$ !cp                                       # Repeat last cp command
+
+Ctrl+R                                      Search history by keyword. Repeat for other occurrences of the same keyword
+Esc+.                                       Last word of the previous command (repeat for last but one ...)
+
+UpArrow / DownArrow                         Previous / next command
+LeftArrow / RightArrow                      Move on the command line
+Ctrl+A                                      beginning of the command line
+Ctrl+E                                      End of the command line
+Ctrl+U                                      Clear from cursor to the beginning of the comand line
+Ctrl+K                                      Clear from cursor to the end of the comand line
+Ctrl+LeftArrow                              Jump to the beginning of previous word
+Ctrl+RightArrow                             Jump to the end of next word
+ 
+Virtual Consoles and Workspaces
+-------------------------------
+
+Virtual consoles: 1-6
+Ctrl+Alt+F1 - Ctrl+Alt+F6
+
+Virtual Console 1 is graphical desktop.
+Virtual Console 9 can be used to troubleshoot boot problems (see debug-shell.service).
+
+Ctrl+Alt+UpArrow / Ctrl+Alt+DownArrow       Move between workspaces
+Ctrl+Alt+L                                  Lock screen (important!)
+
+more/less pagers navigation
+---------------------------
+
+Spacebar                                    Scroll forward (down) one screen
+PageDown                                    Scroll forward (down) one screen too
+PageUp                                      Scroll backward (up) one screen
+UpArrow/DownArrow                           Up/Down line by line
+/<string>                                   Search for string forward (down) using regex
+n                                           Repeat last search forward
+N                                           Repeat last search backward
+g                                           Go to the top of the file
+G                                           Go to the bottom of the file
+q                                           Quit
+
+Locating files
+--------------
+
+Locate uses a database. Works faster than find but will not find last-minute updates.
+
+$ locate fdisk                              # Contains 'fdisk' somewhere in the path
+$ locate -b '\fdisk'                        # Just the word 'fdisk'
+$ locate -i server                          # Case insensitive
+$ locate -n 5 gnome.png                     # Just first 5 matches
+$ updatedb                                  # Updates locate database
+
+Find takes longer because it uses the actual file system
+
+$ find / -name httpd.service
+$ find / -name 'gnome*.png'
+$ find / -iname '*server*'                  # Case insensitive
+
+$ find /tmp -user student                   # Files owned by user
+$ find /tmp -group apache                   # Files owned by group
+
+$ find /home -perm 764                      # Just rwxrw-r--
+$ find /home -perm -324                     # At least u:wx g:w o:r
+$ find /home -perm -004                     # Others have read access (at least)
+$ find /home -perm /444                     # User or group or others have at least read access
+
+$ find /tmp -size 1M                        # Size is exactly 1 MB (smaller files will be listed because size is rounded to the unit used)
+$ find /tmp -size +10M                      # Size is > 10 MB (file sizes rounded to MB)
+$ find /tmp -size -10k                      # Size is < 10 KB (file sizes rounded to KB)
+
+$ find / -mmin 240                          # Files changed exactly 4 hours (240 min) ago
+$ find / -mmin +240                         # Files changed more than 4 hours (240 min) ago
+$ find / -mmin -240                         # Files changed less than 4 hours (240 min) ago
+
+$ find /etc -type f                         # search for files only
+$ find /etc -type d                         # search for folders only
+$ find /etc -type l                         # search for soft links only
+$ find /etc -type f -links +1               # search for files with hard links (link count > 1)
+
+$ find / -type f -name '*.tmp' -mtime +30 -exec rm {} \;    # Delete matched files
+$ find / -type f -name '*.tmp' -mtime +30 -ok rm {} \;      # Ask to delete matched files 
+$ find / -mtime +2 \( -user student -o -user janis \)       # OR condition. By default conditions are interpreted as AND (-a) ==> 'MTIME AND (USER OR USER)'
+
+VIM TEXT EDITOR
+===============
+
+Doc: vim(1) vim :help
+
+Packages: 
+    vim-minimal     vi, rvi ...
+    vim-enhanced    vim, rvim ...
+    vim-X11         gvim
+    
+On COMMAND mode:
+--------------------------------------------------------------------------------    
+Ctrl+G  Display current file information
+Ctrl+N  Auto complete (using current document text)
+AltGr+Ñ Toggle upper/lower case
+Ctrl+R  Redo
+u       Undo
+i       Insert text -- INSERT --
+a       Append text -- INSERT --
+I       Insert at the beginning of the line-- INSERT --
+A       Append at the end of the line -- INSERT --
+R       Replace mode, characters are replaced one by one -- REPLACE --
+r       Replace a single character (do not enter to replace mode)
+o       Open new line below current -- INSERT --
+O       Open new line above current -- INSERT --
+cw      Replace current word
+cc      Replace current line
+c$      Replace to the end of line
+C       Replace to the end of line
+yy      Copy current line to buffer
+yw      Copy current word to buffer
+y$      Copy until end of line to buffer
+dd      Cut current line (to buffer)
+dw      Cut current word (to buffer)
+d$      Cut until end of line (to buffer)
+p       Paste after cursor
+P       Paste before cursor
+h       Cursor left     <
+j       Cursor down     v 
+k       Cursor up       ^
+l       Cursor right    >
+w       Move to beginning of next word
+b       Move to beginning of previous word
+(       Move to beginning of current/previous sentence
+)       Move to beginning of next word
+{       Move to beginning of current/previous sentence
+}       Move to beginning of next word
+^       Move to the beginning of the line
+$       Move to the end of the line
+gg      First line of the document
+<n>gg   N-th line of the document
+G       Last line of the document
+/       Search forward (typed regex)
+?       Search backward (typed regex)
+*       Search forward the word under the cursor    
+n       Next match
+N       Previous match
+v       Enter (and exit) visual mode-char selection -- VISUAL --
+Shift+v Enter (and exit) visual mode-line selection -- VISUAL LINE --
+Ctrl+v  Enter (and exit) visual mode-block selection -- VISUAL LINE --
+
+On EXECUTION mode:
+--------------------------------------------------------------------------------    
+:wq                 Write and quit
+:x                  Save (if changed) and quit
+:w                  Save
+:w <f>              Save to another file
+:q                  Quit (not saving)
+:q!                 Quit ignoring unsaved changes
+:w!                 Force write
+:r <f>              Read file into editor
+:!<cmd>             Run shell command
+:r !<c>             Run command and read output into editor
+:set nu             Show line numbers
+:set nonu           Hide line numbers
+:noh                Crear last search highlighted words
+:set invlist        Show/hide special characters and end of lines
+:set mouse=a        The mouse can move and click on text window
+:set key=<password> Crypt the file using a password 
+:set key=           Clear encryption password. File is saved as plain text.
+:s/t1/t2            Replace t1 by t2 first occurrence on current line
+:1,100s/t1/t2       Replace t1 by t2 first occurrence on lines 1 to 100
+:%s/t1/t2           Replace t1 by t2 first occurrence on entire file
+:%s/t1/t2/g         Replace t1 by t2 all occurrences on entire file
+:s/t1/&t2           Adds t2 to the first occurrence of t1 on current line
+:/pattern/s/t1/t2/g On all lines containing pattern, replace t1 by t2 all occurrences
+:s/t1/t2/i          Replace t1 by t2 first occurrence on current line case insensitive
+:s/t1/t2/n  R       eplace t1 by t2 first occurrence on current line dry mode (change nothing)
+
+vim options:
+-x <file>           Open a file and encrypt it (use :set key= to clear or to change the password)
+-o <file1> <file2>  Open two files in parallel (vertical) - Ctrl+W+W to move to the other file
+-O <file1> <file2>  Open two files in parallel (horizontal) - Ctrl+W+W to move to the other file
+
+                       /+----------------+\
+:::::::::::::::::::====|| SYSADMIN TRICK ||====:::::::::::::::::::
+                       \+----------------+/
+                       
+How to save a file that is root privileged but that has been open and edited with a regular user account:
+
+:w !sudo tee % &> /dev/null                    
+
+
+GREP REGULAR EXPRESSIONS
+========================
+
+Doc: regex(7), grep(1)
+
+.           Any character
+^           Line starts with
+$           Line ends with
+\<          Start of word
+\>          End of word
+[<set>]     One of the elements in set
+*           Zero or many times previous item
+\{n\}       Exactly n times previous item. 
+\{n,m\}     At least n time,s at most m times previous item. Both n and m are optional
+\+          Equivalent to \{1,\}. At leats one time previous item
+( )         Group items for multipliers
+
+grep options:
+-i          Case insensitive
+-v          Reverse. Lines without the pattern
+-r          Recursive on files and dirs
+-B n -A n   Display number of lines [B]efore and/or [A]fter each matching line
+-e          Use multiple regular expressions (regex1 OR regex2)
+-c          Just count lines with the pattern
+-n          Show the line number of matched lines
+
+Is my host ready for virtualization?
+$ grep '^flags' /proc/cpuinfo | head -1 | grep -e '\<lm\>' -e '\<vmx\>' -e '\<svm\>' -e '\<nx\>'
+
+LOCAL USER AND GROUPS
+=====================
+
+Doc: id(1) passwd(5) group(5) su(1) visudo(8) sudo(8)
+     useradd(8) usermod(8) userdel(8) 
+     groupadd(8) groupmod(8) groupdel(8)
+     passwd(1) chage(1) shadow(5)
+     pinfo libc (Section 30 Users and Groups)
+
+Configuration:
+    /etc/passwd
+    /etc/group
+    /etc/login.defs
+    /etc/default/useradd
+    /etc/sudoers
+    /etc/shadow
+    
+$ id                                # Get my UID, GID and suplementary groups 
+# id janis                          # Get someone else UID, GID and suplementary groups 
+$ whoami                            # Print effective user id
+# who am i                          # Current user (initial login user)
+# getent passwd janis               # Retrieves user janis information. Janis can be defined as a local user or as a remote user (LDAP/AD/IPA/...)
+# getent group janis                # Same thing for a group name
+
+/etc/login.defs
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# Min values for automatic uid selection in useradd - Regular users / System accounts
+UID_MIN                  1000
+SYS_UID_MIN               201
+# Same for groups (groupadd)
+GID_MIN                  1000
+SYS_GID_MIN               201
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Becoming a super-user
+---------------------
+
+$ su -                              # Become root (loading root environment - login shell)
+# su john                           # Become john (no login shell)
+
+$ sudo vim /etc/passwd              # Run command as root 
+$ sudo -u john ls ~john/.ssh        # Run command as john
+
+# visudo                            # Edit /etc/sudoers
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# <user|%group> <host|ALL>= (<runsas-user>|ALL) command1, command2, (<runsas-user>:<runsas-group>] command3 
+# Members of the wheel group can run any command from any host
+%wheel  ALL=(ALL)       ALL
+# User janis can shutdown this host (as root)
+janis  localhost=/sbin/shutdown -h now
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+See /var/log/secure for commands run using sudo
+
+Creating new users and groups
+-----------------------------
+
+# useradd janis                     # Creates a new user janis and a new group janis. See /etc/default/useradd 
+# useradd mailer -r                 # Creates a system user. See /etc/login.defs for UID ranges
+# useradd oracle -u 220             # Creates user oracle with UID 220
+# usermod janis -c "Janis Hopper"   # Set the user comment (GECOS)
+# usermod janis -g 1001             # Set the primary group (GID)
+# usermod janis -aG wheel           # Adds a supplementary group for the user
+# usermod janis -m -d /local/janis  # Set the home directory for user and move current files
+# usermod janis -s /bin/csh         # Set the login shell 
+# usermod janis -L                  # Lock user janis account
+# usermod janis -U                  # Unlock user janis account
+# userdel janis -r -f               # Remove user and his/her home directory, force deletion even if user is logged on
+
+Find files and folers owned by deleted users
+# find / -nouser -o -nogroup 2> /dev/null
+
+# groupadd coworkers -g 5000        # Creates a group with GID 5000
+# groupadd oracle -r                # Creates a system group
+# groupmod oracle -n database       # Change group name
+# groupmod oracle -g 500            # Change group GID
+# groupdel oracle                   # Delete group
+
+Group administration
+--------------------
+
+[root@local ~]# gpasswd -A juno oracle          # User juno is a group administrator
+[juno@local ~]$ gpasswd oracle                  # Set a password for the oracle group (interactive)
+[juno@local ~]$ gpasswd -M juno,john oracle     # User juno and john are group members (usermod -aG)
+[john@local ~]$ newgrp oracle                   # Set oracle as the current primary group ID (requests a password if user does not belong to the group)
+
+Set Password
+------------
+
+$ passwd                            # Change my password (interactive)
+# passwd janis                      # Change janis's password (interactive)
+# echo 'T3mp0r@l!95' | passwd janis --stdin # Change janis's password (non interactive)
+
+Password Policy                                                                                                           
+---------------                                                                                                           +--> Warning to change password before expiration (days) (-W)
+                                                                                                                          |
+File: /etc/shadow                                                                                                         | +--> On a expired password, days before locking the account (days) (-I)    
+                                                                                                                          | |     
+        +--> The '!' indicates that the account is locked                                                                 | |   +--> Expiration date (days since 1/1/1970) (-E)
+        |                                                                                                                 | |   |     
+        *                                                                                                                 * * *---*
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+student:!$6$cnuoA3RG$7Q/hWVi7AQH5hkIhD9JDoqaQCGM2siXaxxCH74tetVk1aRXSaCNU5P0nrfg.jXDYAjXy6G7JAImVeamDR3VHn/:17797:0:99999:7:7:20000:
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->       
+          *  *-----* *------------------------------------------------------------------------------------* *---* * *---*
+          |     |      |                                                                                      |   |   |
+          |     |      +--> Password ('student') and salt encrypted using the hashing algorithm               |   |   +--> Max age (days) (-M)
+          |     |                                                                                             |   | 
+          |     +--> Salt (random number)                                                                     |   +--> Min age (days) (-m)
+          |                                                                                                   |
+          +--> Hashing algorithm 1: MD5, 5: SHA-256, 6: SHA-512                                               +--> Last password change date (days since 1/1/1970) (-d)
+
+                                    +                                         +
+                                    |              max days (-M)              |
+                                    +-----------------------------------------+
+                                    |                                         |                    +
+                                    |          .                  .           | inactive days (-I) |
+                                    | min days .                  . warn days |                    |
+ chage command options              |   (-m)   .                  .   (-W)    +--------------------+
+                                    +----------+                  +-----------+                    |
+                                    |          .                  .           |                    |
+                            time +---------------------------------------------------------------------->
+                                    |                                         |                    |
+                                    +                                         +                    +
+                               last change                                 password             account
+                                date (-d)                                 expiration           lock down
+                                                                             date
+              
+# chage -l student                              # List student current password policy settings
+# chage -d 0 student                            # Force to change password on next login
+# chage -E $(date -I -d '+30 days') student     # The account expires on 30 days from now
+# chage -E 0 student                            # The account never expires
+
+# authconfig --passalgo sha256                  # Change default password algorithm (md5 sha256 sha512)
+
+# usermod -L -e 1 juno                          # Expire and lock down the account (eg. fired/resigned employee access restriction)
+# usermod -s /sbin/nologin daemon               # Non-real user, does not require login shell access
+                 
+NETWORK DEFINED USERS AND GROUPS
+================================
+
+Doc: authconfig(8), ipa-client-install(1), sssd(8), realm(8)
+
+- Account information: LDAP (protocol); IPA, Active Directory AD (products)
+- Authentication information: LDAP, Kerberos (protocols); IPA, Active Directory AD (products)
+
+LDAP-Kerberos authconfig
+------------------------
+
+Packages: sssd                  # required
+          authconfig            # required, usually installed
+          authconfig-gtk        # only required for system-config-authentication
+          krb5-workstation      # higly recommended
+
+Configuration: (all files managed by authconfig)
+    /etc/openldap/ldap.conf
+    /etc/krb5.conf
+    /etc/sssd/sssd.conf
+    /etc/nswitch.conf
+    /etc/pam.d/*
+    /etc/openldap/cacerts/
+    
+# authconfig-tui                # curses
+# system-config-authentication  # graphical (authconfig-gtk)
+
+# authconfig --enableldap --disableldapauth --ldapserver=ldapserver.example.com --ldapbasedn="dc=example,dc=com" --enableldaptls --ldaploadcacert=http://ldapserver.example.com/pub/certs/example-ca.cert \
+             --enablekrb5 --krb5kdc=krb5kdc.example.com --krb5adminserver=krb5admin.example.com --krb5realm=EXAMPLE.COM \ 
+             --enablesssd --enablesssdauth --enablemkhomedir \
+             --update
+
+# systemctl start sssd
+# systemctl enable sssd
+             
+$ getent passwd myldapuser      # Test authconfig
+$ ssh myldapuser@localhost      # Test authconfig
+
+IPA Server
+----------
+
+Packages: ipa-client
+
+# ipa-client-install 
+Discovering was successfull!
+...
+Continue to configure the system with these values? [no]: yes
+User authorized to enroll computers: admin
+...
+Password for admin@DOMAIN0.EXAMPLE.COM: redhat2018
+...
+
+Active Directory
+----------------
+
+Packages: realmd, sssd
+
+# realm discover domain.example.com
+# realm join domain.example.com                                             # Use --user if Administrator is not your login name to AD
+# realm permit --realm domain.example.com --all                             # Relaxed
+# realm permit --realm domain.example.com DOMAIN\\aduser1 DOMAIN\\aduser2   # Explicit access user by user
+
+FILE SYSTEM PERMISSIONS
+=======================
+
+Doc: ls(1) chmod(1) chown(1) umask(1)
+     pinfo coreutils (Changing file attributes)
+
++--------------+---------------------------+-------------------------------------------------------------+
+| PERMISSION   |  EFFECT ON FILE           |  EFFECT ON DIRECTORIES                                      |
++--------------------------------------------------------------------------------------------------------+
+| r (read)     |  Contents can be read     |  Content (file names) of the directory can be listed        |
++--------------------------------------------------------------------------------------------------------+
+| w (write)    |  Contents can be changed  |  Can create or delete any file in the directory             |
++--------------------------------------------------------------------------------------------------------+
+| x (execute)  |  File can be executed     |  Content of the directory can be accesed (files properties) |
+|              |                           |  User can `cd´ to the directory                             |
++--------------+---------------------------+-------------------------------------------------------------+
+                                                                                        
+$ ls -l file1                       # Display file1 permissions
+$ ls -ld dir1                       # Display dir1 directory permissions (do not list directory content)
+
++----------------------------------------------------------------> File type (see below)
+| +--------------------------------------------------------------> Owner (user) permisions
+| |  +-----------------------------------------------------------> Group (owner) permissions
+| |  |  +--------------------------------------------------------> Others permissions
+| |  |  | +------------------------------------------------------> If '+' the file/dir has ACLs set
+| |  |  | | +----------------------------------------------------> Number of links to this file/dir
+| |  |  | | |     +----------------------------------------------> Owner (user)
+| |  |  | | |     |       +--------------------------------------> Owner (group)
+| |  |  | | |     |       |     +--------------------------------> File/dir size (bytes)
+| |  |  | | |     |       |     |         +----------------------> Last modification date and time
+| |  |  | | |     |       |     |         |            +---------> File/dir name
+| |  |  | | |     |       |     |         |            |
+TUUUGGGOOOA nn *-----* #-----# nnnn +----------+ *---------------*
+drwxr-xr-x.  2 student student    6 Jul 17 08:55 Public
+-r--r--r--.  1 student student 6408 Oct  7 08:27 readonly
+drwxr-x---.  2 student student    6 Jul 17 08:55 mydir 
+-rw-------.  1 student student 6408 Oct  7 08:27 myfile
+-rwx------.  1 student student 6408 Oct  7 08:27 myscript
+
+The file type is one of the following characters:
+     '-'    regular file
+     'b'    block special file
+     'c'    character special file
+     'C'    high performance ("contiguous data") file
+     'd'    directory
+     'D'    door (Solaris 2.5 and up)
+     'l'    symbolic link
+     'M'    off-line ("migrated") file (Cray DMF)
+     'n'    network special file (HP-UX)
+     'p'    FIFO (named pipe)
+     'P'    port (Solaris 10 and up)
+     's'    socket
+     '?'    some other file type
+
+Symbolic permissions
+--------------------
+     
+$ chmod go-rwx myfile               # Remove all permissions for group and others
+$ chmod a+x myscript                # Set execution permissions for owner, group and others
+$ chmod u+w readonly                # Set write permissions for the user only
+$ chmod -R o=rX mydir               # Recursively into mydir. Set read (files and dirs) and search permissions (dirs only) for others, unset write for others if set (set exactly). 
+
+                    | r |
+    | u |   | + |   | w |
+    | g |   | - |   | x |
+    | o |   | = |   | X |
+    | a |           | s |
+                    | t |
+                    
+Numeric permissions
+-------------------
+                                                    
+$ chmod 750 myscript                # -rwxr-x---.
+$ chmod 600 myfile                  # -rw-------.
+$ chmod 0775 Public                 # -rwxrwxr-x.
+$ chmod 0400 readonly               # -r--------.
+
+
+       SPECIAL        USER          GROUP        OTHERS
+    +---+---+---+ +---+---+---+ +---+---+---+ +---+---+---+
+    | 4 | 2 | 1 | | 4 | 2 | 1 | | 4 | 2 | 1 | | 4 | 2 | 1 |
+    +-----------+ +-----------+ +-----------+ +-----------+
+    | s | s | t | | r | w | x | | r | w | x | | r | w | x |
+    +-+-+-+-+-+-+ +---+---+---+ +---+---+---+ +---+---+---+
+      |   |   |
+      |   |   +--> sticky bit
+      |   +------> set gid
+      +----------> set uid
+      
+Ownership
+---------
+
+# chown janis /exports                  # Change owner user
+# chown -R apache:apache /web/myweb     # Recursively change owner user and owner group
+# chown :coworkers /exports             # Change owner group
+# chgrp coworkers /exports              # Equivalent to previous one
+
+Only root can change file ownership.
+Regular users can change group ownership but only to those groups they belong.
+
+Special permissions
+-------------------
+
+1. Set UID
+   - Run a command with the authority of another user (e.g passwd need access to /etc/shadow ==> root access)
+2. Set GID    
+   - Files: Run a command with the authority of another group (e.g. wall, write need write access to tty's) 
+   - Dir: Create a colaboration directory. All users belonging to a group can access/modify dir. files
+3. Sticky bit (restricted deletion flag)
+   - Disallow other users removing someone else files on shared access directories like /tmp
+   - Combined with Set GID, users from a group can read others files but they cannot modify or remove them.
+
++---------------+-----------------------------------+----------------------------------------+
+|  PERMISSION   |  EFFECT ON FILE                   |  EFFECT ON DIRECTORIES                 |
++--------------------------------------------------------------------------------------------+
+|  u+s (suid)   |  File executes as the user that   |  No effect.                            |
+|               |  owns the file, not as the user   |                                        |
+|               |  that runs the command.           |                                        |
++--------------------------------------------------------------------------------------------+
+|  g+s (sgid)   |  File executes as the group that  |  Files newly created in the directory  |
+|               |  owns the file.                   |  have the group owner set to the owner |
+|               |                                   |  of the directory.                     |
++--------------------------------------------------------------------------------------------+
+|  o+t (sticky) |  No effect                        |  Users with write permissions on the   |
+|               |                                   |  directory can only remove the files   |
+|               |                                   |  they own. They cannot remove or save  |
+|               |                                   |  files owned by other users.           |
++---------------+-----------------------------------+----------------------------------------+
+
+'ls' combines multiple bits into the third character of each set of permissions as follows:
+     's'    If the set-user-ID or set-group-ID bit and the corresponding executable bit are both set.
+     'S'    If the set-user-ID or set-group-ID bit is set but the corresponding executable bit is not set.
+     't'    If the restricted deletion flag or sticky bit, and the other-executable bit, are both set. 
+     'T'    If the restricted deletion flag or sticky bit is set but the other-executable bit is not set.
+     'x'    If the executable bit is set and none of the above apply.
+     '-'    Otherwise (nothing is set).
+
+# chmod o+t /tmp                    # Set stciky bit
+# chmod u+s /usr/bin/passwd         # Set UID 
+# chmod g+s /usr/bin/write          # Set GID 
+# chmod g+w /dev/tty*               # A user can send messages to another users, because /usr/bin/write runs with GID=tty and this group has write access to /dev/tty* special character devices (terminals)
+
+# chmod 1777 /tmp                   # drwxrwxrwt.
+# chmod 4755 /usr/bin/passwd        # -rwsr-xr-x.
+# chmod 2555 /usr/bin/wall          # -r-xr-sr-x. 1 root tty
+# chmod 0620 /dev/tty*              # crw--w----. 1 root tty  (==> wall can write in all tty's even when lauched by a regular user)
+
+Default permissions
+-------------------
+
+Files: -rw-rw-rw-. 0666
+ Dirs: drwxrwxrwx. 0777
+
+$ umask                             # Display current file creation mask  
+$ umask 022                         # Clears write permissions for group and others on the file creation mask (drwxr-xr-x. -rw-r--r--.) 
+$ umask 077                         # Clears all permissions for group and others on the file creation mask (this is the default for home dirs: drwx------.)
+
+      Files        Dirs
+       0666        0777
+    - umask     - umask
+    -------     -------
+       0xxx        0xxx
+    
+/etc/login.defs --> UMASK Mask used to create home directories (077)
+
+ACCESS CONTROL LISTS - ACLS
+===========================
+
+Doc: acl(5), getfacl(1), setfacl(1)
+
+For ext2, ext3 and ext4 filesystems, check mount options:
+$ mount -s | grep /dev/part             # Search for 'user_xattr' and 'acl'
+$ tune2fs -l /dev/part                  # Search for 'user_xattr' and 'acl'
+
+Configure for ACLs:
+$ mount -o user_xattr,acl /dev/part     # allow acls for this mount only
+$ tune2fs -o user_xattr,acl /dev/part   # allow acls for future mounts
+
+RHEL6 does not set this mount options by default. RHEL7 does.
+ext4 filesystems created by anaconda had been set up with ACLs (even on RHEL6).
+
+If file have ACLs, chmod change the mask for the group level permissions
+The following code change grop permissions to rwx in any case
+$ if [ $(getfacl -s $FILE) = '' ] ; then chmod g+rwx $FILE; else setfacl -m -g::rwx $FILE; fi
+
+Mask: Maximum permissions possible for:
+- all named users
+- the group owner
+- all named groups
+
+ACL permission precedence:
+1. user is the owner --> file owner permissions
+2. user matchs a named user --> permissions of the named user restricted by mask
+3. user belongs to file owner group --> file group permissions restricted by mask
+4. user belongs to any of the named groups --> permissions of the named group restricted by mask
+5. Permissions for other
+
+$ getfacl myfile
+$ getfacl file1 | setfacl --set-file=- file2 # Copy ACL from file1 to file2
+$ getfacl -R /dir1 ; setfacl -R --set-file=- # Recover ACLS from a backup location (cp -a)
+
+$ setfacl -m u:user1:rw file1
+$ setfacl -m g:group1:rwx file1
+$ setfacl -m o::- file1
+$ setfacl -n -m g::-                    # Do not recompute the mask (-n)
+$ setfacl -m m::rw file1                # Set the mask (==> chmod g=rw file1)
+$ setfacl --set u::rwx,g::-,o::- myfile # Totally replace ACL
+$ setfacl -R -m u:user1:rwX dir1        # Recursive, x is only given to dirs and files already with x
+$ setfacl -x u:user1,g:group1 file1     # Remove ACL for a named user and a named group
+$ setfacl -k file1                      # Remove all default ACLS
+$ setfacl -b file1                      # Remove all ACLS (including default)
+$ setfacl -m d:u:user1:rwx dir1         # Set default ACLs for a directory (inheritance)
+$ setfacl -x d:u:user1 dir1             # Remove default ACLs for a directory (inheritance)
+
+MANAGING LINUX PROCESSES
+========================
+
+Doc: ps(1) proc(5) signal(7) pstree(1) builtins(1)
+     kill(1) pgrep(1) pkill(1) killall(1) w(1)
+
+BIOS      Bootable                                                                   /  |
+EFI       device    GRUB2                                                           /   | All system 
+Firmware  --------> Boot manager -----> Linux kernel vmlinuz -----> systemd (PID 1) --> | and user 
+                                        + initramfs image                           \   | processes
+                                                                                     \  |
+                                                                                     
+Process is an instance of an executable program. Consist of:
+- An address space
+- Security properties
+- One or more execution threads
+- A process state
+- A process environment:
+    * Local and global variables 
+    * A scheduling context
+    * Allocated system resources (file descriptors, network ports, ...)
+    
+Process states:
+
+NAME        FLAG    DESCRIPTION 
+-----------------------------------------------------------------------------------------------------------------------
+Running     R       TASK_RUNNING Executing or waiting for a CPU
+-----------------------------------------------------------------------------------------------------------------------
+Sleeping    S       TASK_INTERRUPTIBLE Waiting for a condition or event
+            D       TASK_UNINTERRUPTIBLE Waiting for a condition or event but wont reposnd to a SIGNAL
+            K       TASK_KILLABLE Waiting for a condition or event. Will only reposnd to a KILL SIGNAL
+-----------------------------------------------------------------------------------------------------------------------
+Suspend     T       TASK_STOPPED The process has been stopped (suspended) (Ctrl+Z)
+            T       TASK_TRACED The process is being debugged
+-----------------------------------------------------------------------------------------------------------------------
+Zombie      Z       EXIT_ZOMBIE A child process signal its parent as it exists. Resources are released excpet PID.
+            X       EXIT_DEAD The parent cleans up the remaining child processes structure. Child is totally released.
+-----------------------------------------------------------------------------------------------------------------------
+
+Listing existing processes
+--------------------------
+    
+$ ps                                # Only process in my current login session - Display PID TTY TIME CMD
+$ ps -aux                           # All processes. Display USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND 
+$ ps -ef                            # All processes. Display UID PID PPID C STIME TTY TIME CMD
+$ pstree -pal                       # All process using a tree structure
+$ pstree -pal root                  # All process from a user using a tree structure
+$ pstree -pal 1524                  # All process under a given one (PID) using a tree structure
+$ pgrep -a bash                     # Searh process by name
+
+Job Control
+-----------
+
+$ find / -name foo &> /tmp/out &    # Run command in background
+[1] 2853
+$ jobs                              # List current jobs
+$ fg %1                             # Bring to foreground firts job
+$ fg $(pgrep find)                  # Bring to foreground a job with a given PID (2853 is returned by pgrep)
+$ sleep 10000                       # Ctrl+Z Suspend a job in the foreground
+^Z                              
+[2]+  Stopped                 sleep 10000
+$ bg %2                             # Start a stopped job in background
+
+Sending signals to processes
+----------------------------
+
+More frequent used signals:
+#   Short name  Definition          Purpose
+-----------------------------------------------------------------------------------------------------------------------
+1   HUP         Hangup              Report termination of the controlling process of a terminal.
+                                    Request process reinitialization (reload) without termination.
+2   INT         Keyboard interrupt  Causes process termination. Sent by Ctrl+C. can be blocked or handled.
+3   QUIT        keyboard quit       Like SIGINT but generates a process dump. Sent by Ctrl+\
+9   KILL        Kill unblockeable   Abrupt program termination. Cannot be blocked, ignored or handled. 
+15  TERM (def.) Terminate           Polite program termination. Can be blocked, ignored or handled. 
+18  CONT        Continue            Resume a stopped process. 
+19  STOP        Stop unblockeable   Suspend the process. Cannot be blocked or handled. 
+20  TSTP        Keyboard stop       Suspend the process. Can be blocked or handled. Sent by Ctrl+Z
+
+$ kill -l                           # List complete list of signals
+$ kill 2853                         # Send signal SIGTERM to process PID 2853
+$ kill -9 2853                      # Send signal SIGKILL to process PID 2853
+$ kill -KILL 2853                   # Same thing
+$ kill -SIGKILL 2853                # Same thing
+$ killall -TERM -u janis bash       # Send the signal SIGTERM to all bash shells from user janis
+$ pkill -KILL -U janis bash         # Send the signal SIGKILL to all bash shells from user janis
+
+Logging out users
+-----------------
+
+# wall 'The system requires maintenance. Please log out on the next 5 min.'
+# sleep 300
+# w -f                              # Who is logged-in?
+# pkill -SIGTERM -u janis           # Polite. User janis
+# pkill -SIGTERM -t tty3            # Polite. Terminal tty3
+# pstree -p bob                     # List bob's processes (with PIDs)
+# pkill -SIGTERM -P 8931            # Polite. Kill process tree under PID 8931
+# wall 'The system requires maintenance. Users will be logged out automatically in 30s.'
+# sleep  30
+# pkill -SIGKILL -u janis           # Force termination
+# pkill -KILL -t tty3
+# pkill -9 -P 8931      
+
+# last                              # Last attempts to log into the system and system reboots 
+# lastb                             # Falied log-in attemps
+# lastlog                           # Last log-in attemp for every user
+
+System load
+-----------
+
+$ grep "model name" /proc/cpuinfo | wc -l   # Number of CPU (threads)
+$ uptime                                    # Load average and up time
+ 15:13:46 up  8:07,  1 user,  load average: 1.86, 0.52, 0.22
+                                            |     |     |
+                                            |     |     +-----> Last 15 minutes
+                                            |     +-----------> Last 5 minutes   
+                                            +-----------------> Last minute                                                     
+$ w                                         # w also call uptime and then list users logged-in
+
+100% load ==> load average > number of logical CPUS ==> resource saturation and waiting time
+
+$ top                               # Real-time process monitoring
+
+TOP most used commands:
+?,h     Help
+l,t,m   Toggle load threads and memory headers
+1       Toggle display CPU as summary / per CPU usage
+s       Set the refresh rate (seconds, default 3.0) 
+b       Toggle highlight running processes
+H       Toggle display threads/tasks
+u,U     Filter byuser name (effective,real)
+M       Sort by memory usage
+P       Sort by CPU usage
+k       Kill a process
+r       Renice a process
+W       Save current display configuration
+q       Quit
+
+$ iostat -y 5                       # Disk usage statistics (refresh every 5 seconds)
+$ atop                              # (EPEL) Similar to top but includes I/O load too (Disk & network)
+                                                                                     
+Process Priority
+----------------
+
+Doc: nice(1)
+
+Normal scheduling policy: SCHED_OTHER (aka SCHED_NORMAL) (displayed as TS on ps/top)
+
+Nice level (priority) default is 0, inherited from parent process.
+
+Only root can set negative nice levels. User can only increase a process nice level.
+
+Priority  +++                                       ---
+NI Nice                        -20 -19 ...  0 ... 18 19 
+PR Top    RT ... -99 ... -3 -2   0   1 ... 20 ... 38 39
+
+$ ps -eo pid,cmd,cls,nice       # cls --> scheduling policy, nice --> nice level
+
+$ nice mybatch &                # default nice level is 10
+[2] 12932
+$ nice -n 15 myscript &
+[2] 12936
+$ renice -n 19 12936            # lowest
+$ sudo renice -n -10 $(pgrep 'mybatch')
+
+SYSTEMD
+=======
+
+Doc: systemd(1) systemctl(1)
+
+Configuration:
+    /usr/lib/systemd/system/*   (Installation defaults. Search order = 3)
+    /run/systemd/system/*       (Runtime non-persistent configurations. Search order = 2)
+    /etc/systemd/system/*       (Customized elements. Search order = 1)
+
+Process ID=1 --> systemd
+
+Scripts on /etc/sysconfig/  --> Replaced by systemd
+(init scripts)              --> Environment files (NAME=value)
+                            
+Display current system boot process:
+$ systemd-analyze plot > mysystemboot.svg
+$ eog mysystemboot.svg
+
+$ systemctl -t help             # List of unit types
+
+            .service            Standard system services (daemons)
+            .socket             IPC socket, control is passed to the daemon when a connection arrives 
+            .path               Daemon is activated when a system change occurs (eg. a new job on a printer spool)
+
+$ systemctl                                             # State of all units (loaded)
+$ systemctl --type=service                              # State of all units of type service
+$ systemctl status sshd -l                              # Service status with full log lines
+$ systemctl is-active sshd                              # Check if serice is active (exit code)
+$ systemctl is-enabled sshd                             # Check if serice is enabled (exit code)
+$ systemctl list-units --type=service --all             # List all loaded units (active and inactive) of type service
+$ systemctl list-unit-files --type=service              # List all units (enabled / disabled) of type service
+$ systemctl --failed --type=service                     # List services that have failed to start
+$ systemctl list-dependencies httpd.service             # List dependencies (which servicen I depend on)
+$ systemctl list-dependencies dbus.service --reverse    # List reverse dependencies (which servicen depend on me)
+
+$ systemctl start sshd.service
+$ systemctl stop sshd.service
+$ systemctl restart sshd.service
+$ systemctl reload sshd.service
+
+$ systemctl enable sshd.service
+$ systemctl disable sshd.service
+
+$ systemctl mask iptables.service                       # Masked units cannot be started nor manually nor as dependency
+$ systemctl unmask iptables.service
+
+$ systemctl poweroff
+$ systemctl halt
+$ systemctl reboot
+
+
+Target Unit Type
+----------------
+
+graphical.target
+multi-user.target
+rescue.target
+emergency.target
+
+$ systemctl isolate multi-user.target                   # Get to this target (start/stop services)
+$ systemctl get-default
+$ systemctl set-default graphical.target
+
+Set a target during the boot process (emergency procedure):
+GRUB2 linux16 .......... systemd.unit=rescue.target [Ctrl+X]
+
+Recovering the root password
+----------------------------
+
+GRUB2 linux16 .......... console=tty0 rd.break [Ctrl+X]
+
+# loadkeys es
+# mount -o remount,rw /sysroot
+# chroot /sysroot
+# passwd root
+# touch /.autorelabel
+# exit 
+# exit
+
+Troubleshooting Boot Issues
+---------------------------
+
+Use journal CTL to review complete boot messages: 
+# journalctl -b-1 -p err                        # make systemd-journald persistent first
+
+                       /+------------------------------------------+\
+:::::::::::::::::::====|| Note: See section `Managing System Logs´ ||====:::::::::::::::::::
+                       \+------------------------------------------+/
+
+# systemctl enable debug-shell.service
+# systemctl reboot
+
+TTY9 (Ctrl+Alt+F9) --> Virtual console with root login
+
+# systemctl list-jobs   # Jobs "running" must complete before the jobs "waiting" can continue
+
+# systemctl disable debug-shell.service
+
+MANAGING TIME
+=============
+
+Doc: timedatectl(1) tzselect(8) chronyd(8) chrony.conf(5) chronyc(1)
+
+Services: chronyd
+
+Configuration:
+    /etc/chrony.conf
+
+$ timedatectl
+# tzselect                                      # Interactive. Find yor time zone through questions.
+$ timedatectl list-timezones | grep Madrid      # Search for your city (principal city)
+# timedatectl set-timezone Europe/Madrid
+# timedatectl set-time 10:00:00
+# timedatectl set-ntp true                      # Network time protocol
+
+Network Time Protocol (NTP)
+---------------------------
+
+It is highly recommended to use NTP to set the time accurately.
+
+stratum --> Number of hops away from a high-performance reference clock (stratum 0).
+
+/etc/chrony.conf
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# These servers were defined in the installation:
+server 0.rhel.pool.ntp.org iburst
+server 1.rhel.pool.ntp.org iburst
+server 2.rhel.pool.ntp.org iburst
+server 3.rhel.pool.ntp.org iburst
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->       
+
+# systemctl restart chronyd
+
+# chronyc sources -v                            # chronyc can be used as an interactive tool (CLI to chronyd)
+210 Number of sources = 2
+
+  .-- Source mode  '^' = server, '=' = peer, '#' = local clock.
+ / .- Source state '*' = current synced, '+' = combined , '-' = not combined,
+| /   '?' = unreachable, 'x' = time may be in error, '~' = time too variable.
+||                                                 .- xxxx [ yyyy ] +/- zzzz
+||                                                /   xxxx = adjusted offset,
+||         Log2(Polling interval) -.             |    yyyy = measured offset,
+||                                  \            |    zzzz = estimated error.
+||                                   |           |
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+^- dnscache-madrid.ntt.eu        2   9   377    32   +752us[ +752us] +/-   58ms
+^* elv06.icfo.es                 2   9   377   101   -261us[ -338us] +/-   15ms     ===> Currently synchronized to this host
+
+MANAGING SYSTEM LOGS
+====================
+
+Doc: journalctl(1) rsyslog.conf(5) logrotate(8) logger(1)
+     /usr/share/doc/rsyslog-*/manual.html
+
+Services: rsyslog systemd-journald
+
+Ports: 514/tcp (log forwarding)
+
+Configuration:
+    /etc/rsyslog.conf
+    /etc/rsyslog.d/*.conf
+    /etc/logrotate.conf
+    /etc/logrotate.d/*
+
+Logging architectures
+---------------------
+
+The two architectures are active by default. They both support the Syslog protocol.
+
+Legacy: syslog --> Service: rsyslog
+    - Uses text files
+    - Persist on /var/log/*
+    
+New: systemd-journald --> Service: systemd-journald     
+    - More info and from more sources (e.g boot process)
+    - Uses binary files 
+    - Do not persist by default
+    - Default log location /run/log/journalctl
+    - journalctl to access the logs
+
+SYSLOG 
+------  
+    
+LOG FILE (syslog)       PURPOSE
+---------------------------------------------------------------------------------------------------------
+/var/log/messages       Most of the messages are logged here. 
+/var/log/secure         Security and authenticatiob messages.
+/var/log/maillog        Mail server related messages.
+/var/log/cron           Periodically executed tasks.
+/var/log/boot.log       Messages during system start-up (incomplete).
+
+Syslog Priorities:
+#   Priority    Severity
+------------------------------------------------    
+0   emerg       System is unusable
+1   alert       Action must be taken inmediately
+2   crit        Critical condition
+3   err         Non-critical error condition
+4   warning     Warning condition
+5   notice      Normal but significant event
+6   info        Informational event
+7   debug       Debugging level message
+
+/etc/rsyslog.conf
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+#### RULES ####
+
+# Log all kernel messages to the console.
+# Logging much else clutters up the screen.
+#kern.*                                                 /dev/console
+
+# Log anything (except mail) of level info or higher.
+# Don't log private authentication messages!
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+
+# The authpriv file has restricted access.
+authpriv.*                                              /var/log/secure
+
+# Log all the mail messages in one place.
+mail.*                                                  -/var/log/maillog
+
+# Log cron stuff
+cron.*                                                  /var/log/cron
+
+# Everybody gets emergency messages
+*.emerg                                                 :omusrmsg:*
+
+# Save news errors of level crit and higher in a special file.
+uucp,news.crit                                          /var/log/spooler
+
+# Save boot messages also to boot.log
+local7.*                                                /var/log/boot.log
+
+# ### begin forwarding rule ###
+# An on-disk queue is created for this action. If the remote host is
+# down, messages are spooled to disk and sent when it is up again.
+$ActionQueueFileName fwdRule1 # unique name prefix for spool files
+$ActionQueueMaxDiskSpace 1g   # 1gb space limit (use as much as possible)
+$ActionQueueSaveOnShutdown on # save messages to disk on shutdown
+$ActionQueueType LinkedList   # run asynchronously
+$ActionResumeRetryCount -1    # infinite retries if host is down
+*.* cewntralmonitor.example.com:514
+# ### end of the forwarding rule ###
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->       
+
+/etc/logrotate.conf
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# rotate log files weekly
+weekly
+# keep 4 weeks worth of backlogs
+rotate 4
+# create new (empty) log files after rotating old ones
+create
+# use date as a suffix of the rotated file
+dateext
+# uncomment this if you want your log files compressed
+#compress
+# RPM packages drop log rotation information into this directory
+include /etc/logrotate.d
+# no packages own wtmp and btmp -- we'll rotate them here
+/var/log/wtmp {
+    monthly
+    create 0664 root utmp
+        minsize 1M
+    rotate 1
+}
+/var/log/btmp {
+    missingok
+    monthly
+    create 0600 root utmp
+    rotate 1
+}
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->       
+
+# tail -f /var/log/messages             # See new messages as they appear (Ctrl+C to end)
+
+$ logger -p mail.notice "This is a sample message that will be sent to /var/log/maillog, just to test rsyslog"
+
+SYSTEMD-JOURNALD
+----------------
+
+$ journalctl                            # Review journal information (less pager)
+$ journalctl -b                         # Messages since last boot
+$ journalctl -n 5                       # Last 5 entries (10 by default)
+$ journalctl -p err                     # Entries of err (3) priority
+$ journalctl -f                         # Similar to tail -f 
+$ journalctl --since "2018-10-01 20:30:00" --until "2018-10-05 00:00:00"
+$ journalctl -o verbose -n 1            # Display all message properties for the last message. Property names can be used for queries
+$ journalctl _SYSTEMD_SESSION=11        # Display message qith that specific property
+
+To make the journal persist:
+# mkdir /var/log/journal
+# chown root:systemd-journal /var/log/journal
+# chmod 2755 /var/log/journal
+# killall -USR1 systemd-journald        # Restart systemd-journald
+
+MOVING AND BACKING UP FILES
+===========================
+
+Doc: tar(1) gzip(1) gunzip(1) bzip2(1) bunzip2(1) xz(1) unxz(1)
+     scp(1) sftp(1) rsync(1)
+
+ARCHIVING WITH TAR
+------------------
+
+$ tar cf archive1.tar file1 file2       # Just this files
+$ tar cf archive2.tar dir1              # All files in dir1 
+$ tar tf archive2.tar                   # List archive contents file names only
+$ tar tvf archive2.tar                  # List archive contents including file details
+$ tar xpf archive2.tar                  # Extract on current dir, preserving permissions
+$ tar xf archive2.tar -C /tmp           # Extracted files will be on /tmp/dir1
+    
+$ tar czf archive.tgz dir1              # gzip compression
+$ tar cjf archive.tar.bz2 dir1          # bzip2 compression
+$ tar cJf archive.tar.xz dir1           # xz compression
+
+$ tar xf archive.tgz                    # can use xzf
+$ tar xf archive.tar.bz2                # can use xjf   
+$ tar xf archive.tar.xz                 # can use xJf
+
+$ vim archive.tgz                       # vim can view and change contents, even of compressed files
+
+Using SSH to unarchive a local archive on a remote host:
+$ cat myArchive.tar | ssh myuser@remotehost.domain.com 'tar xf - -C /destination/folder'
+
+SCP
+---
+
+$ scp file1 file2 file3 myuser@remotehost.domain.com:/remote/folder
+$ scp myuser@remotehost.domain.com:/remote/folder/file ./localdir
+$ scp -r myuser@remotehost.domain.com:/remote/folder ./localdir
+
+Editing a remote file directly using scp 
+$ vim scp://myuser@remotehost.domain.com//path/to/file
+
+SFTP
+----
+
+$ sftp myuser@remotehost.domain.com
+sftp> cd backup
+sftp> put /etc/hosts
+Uploading /etc/hosts to /home/myuser/backup
+sftp> lcd /tmp
+sftp> get /etc/yum.conf
+sftp> exit
+
+RSYNC
+-----
+
+RSYNC performs a file synchronization, copying only content that have changed.
+
+Local                               # /var/log --> /tmp/log
+$ rsync -av /var/log /tmp           # -a (archive mode) includes -r -l -p -t -g -o -D
+$ rsync -Hav /usr/boin /tmp         # -H process a hard link as a hard link and not as two files
+
+Remote
+$ rsync -av /var/log myuser@remotehost.domain.com:/tmp  
+$ rsync -av myuser@remotehost.domain.com:/var/log /tmp  
+
+ACCESSING REMOTE SYSTEMS - OPENSSH
+==================================
+
+Packages: openssh
+
+Doc: ssh(1) ssh-keygen(1) ssh-copy-id(1) sshd_config(5)
+
+Services: sshd
+
+Ports: 22/tcp 22/udp
+
+Configuration:
+    /etc/ssh/sshd_config
+
+TLS - Transport Layer Security (Updated version of SSL): The protocol uses asymetric keys for the handshake and a symetric key for a established connection.
+TLS is used by various services: openssh, e-mail, https, ... Each service has its own set of keys. 
+
+User keys:
+~.ssh/known_hosts               Public keys of the servers from which I have connected using openssh
+~.ssh/authorized_keys           Public keys of users that can connect to this host/this user account (normally password is not required)
+~.ssh/id_rsa                    My private key (RSA)
+~.ssh/id_rsa.pub                My public key (RSA)
+~.ssh/id_ecdsa                  My private key (ECDSA) ECDSA: Elliptic Curve Digital Signature Algorithm
+~.ssh/id_ecdsa.pub              My public key (ECDSA)
+
+Server keys:
+/etc/ssh/ssh_host_rsa_key       Server private key (RSA)
+/etc/ssh/ssh_host_rsa_key.pub   Server public key (RSA)
+
+$ ssh remotehost                # Connect to host remotehost as current user - start interactive shell
+$ ssh root@remotehost           # Connect to host remotehost as root - start interactive shell
+$ ssh root@remotehost reboot    # Connect to host remotehost as root and run a single command
+$ w -f                          # Who is connected to this system and from where (-f)
+$ ssh -X remotehost gedit       # Run gedit on remotehost using this host X11 display
+$ ssh -v root@remotehost        # DEBUG mode. Display a lot of information of the connection process
+
+Using a public key instead of a password:
+$ ssh-keygen                    # Generates an RSA public/private key pair
+$ ssh-keygen -t ecdsa           # Generates an ECDSA public/private key pair (id_ecdsa id_ecdsa.pub)
+# ssh-copy-id root@remotehost   # Copy my public key(s) to root's ~.ssh/authorized_keys on remotehost. root password is required this time but wont be requested on future ssh sessions.
+
+Using ssh-agent to store passphrase (similar to a keyring):
+$ eval $(ssh-agent)             # This is typically included on .bashrc
+$ ssh-add                       # Requests passphrase and adds they key to the ssh-agent, so passphrase is no loger requested in this session
+
+OPENSSH service configuration
+-----------------------------
+
+# vim /etc/ssh/sshd_config      # WARNING: Do not change /etc/ssh/ssh_config which is client configration file
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# Disallow root login via ssh (default is yes)
+PermitRootLogin no
+
+# Disallow login using a password (default is yes), so the publickey method need to be used
+PasswordAuthentication no
+
+# Allow X11 to start in local display windows from the remote host (default no, X11 is not secure)
+X11Forwarding yes
+
+# The allow/deny directives are processed in the following order: DenyUsers, AllowUsers, DenyGroups, and finally AllowGroups.
+DenyUsers !*@server.example.com
+AllowUsers fred@server.example.com janis@server.example.com john@server.example.com
+DenyGroups !sshg
+AllowGroups sshg
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->       
+
+# systemctl reload sshd         # After making changes to /etc/ssh/sshd_config
+
+INSTALL SOFTWARE PACKAGES
+=========================
+
+Doc: subscription-manager(8) yum(1) yum.conf(5) rpm(8) yum-config-manager(1)
+
+Configuration:
+    /etc/yum.conf
+    /etc/yum.repos.d/*.repo
+
+Red Hat Subscription Management
+-------------------------------
+
+1. Register the system
+2. Subscribe to products
+3. Enable repositories
+[4. Review and track entitlements]
+
+$ subscription-manager register --username=myuser --password=mypassword
+$ subscription-manager list --available | less
+$ subscription-manager attach --auto
+$ subscription-manager list --consummed
+
+$ subscription-manager unregister
+
+/etc/pki/consumer/      --> Certificate of the Red Hat account to which the system is registered
+/etc/pki/product/       --> Certificates of the Red Hat products installed on the system
+/etc/pki/entitlement/   --> Certificates of the subscriptions attached to the system
+            
+RPM Package Manager
+-------------------
+
+Package file name structure: (name-version-release.arch.rpm)
+
+  +-------------------------------> Name
+  |     +-------------------------> Version
+  |     |       +-----------------> Release
+  |     |       |         +-------> Architecture
+  |     |       |         |    +--> RPM package
+----- ----- ---------- ------ ---
+httpd-2.4.6-80.el7_5.1.x86_64.rpm
+
+The package file is an archive that contains:
+- The files that the package installs
+- The metadata about the package
+- Scripts to be run when this package (or other packages) are installed, updated or removed.
+- [Optional] A digital signature that identifies the package source.
+
+# rpm -q openssh-server                                         # Get complete package name (version-release-arch)
+# rpm -q -a                                                     # List all installed packages
+# rpm -q -f /etc/samba/smb.conf                                 # yum provides
+# rpm -q -i epel-release-7-11.noarch                            # yum info
+# rpm -q -l epel-release-7-11.noarch                            # All files installed by this package
+# rpm -q -c epel-release-7-11.noarch                            # Configuration files installed by this package
+# rpm -q -d epel-release-7-11.noarch                            # Documentation files installed by this package
+# rpm -q --scripts spice-server-0.12.4-5.el7.x86_64             # Scripts to run install/uninstall
+# rpm -q --changelog audit spice-server-0.12.4-5.el7.x86_64     # Scripts to run install/uninstall
+# rpm -q [...] -p epel-release-latest-7.noarch.rpm              # Use this RPM file for the query (otherwise installed packages are queried)
+
+# rpm -q -a --queryformat "%10{SIZE} %{NAME}\n"                 # To select the way rpm generates the output
+
+# rpm -ivh epel-release-latest-7.noarch.rpm                     # Installs the package, but it is better to install using yum
+
+Extracting files froma an RPM package, but not installing it:
+# rpm2cpio epel-release-latest-7.noarch.rpm | cpio -id "*repo"
+
+YUM Package Manager
+-------------------
+
+Front-end tool for RPM. Manage dependencies and package collections. Use a collection of repositories.
+
+# yum repolist                      # List of repositories (enabled)
+# yum list nfs*                     # Installed and available packages
+# yum list installed                
+
+        Environment --> Group --> Package --> rpm
+
+# yum list 'nfs*'
+# yum list kernel                   # `uname -r` to know what is my current kernel
+# yum search all 'ftp server'       # Without all only name and summary are searched
+# yum info tftp-server
+Available Packages
+Name        : tftp-server
+Arch        : x86_64
+Version     : 5.2
+Release     : 22.el7
+Size        : 47 k
+Repo        : rhel-7-server-rpms/7Server/x86_64
+Summary     : The server for the Trivial File Transfer Protocol (TFTP)
+URL         : http://www.kernel.org/pub/software/network/tftp/
+License     : BSD
+Description : The Trivial File Transfer Protocol (TFTP) is normally used only for
+            : booting diskless workstations.  The tftp-server package provides the
+            : server for TFTP, which allows users to transfer files to and from a
+            : remote machine. TFTP provides very little security, and should not be
+            : enabled unless it is expressly needed.
+# yum provides /etc/samba/smb.conf
+# yum provides *bin/parted
+# yum install samba-client
+# yum remove samba-client
+# yum update                        # Entire system 
+# yum update kernel                 # Several versions of the kernel (3) can coexist
+
+# yum localinstall epel-release-latest-7.noarch.rpm
+
+# yum -v grouplist hidden           # Package groups and environment groups, including short names (groupid's)
+# yum groupinfo 'Backup Server'
+# yum groupinstall  'Backup Server'
+# yum install @backup-server        # Using the groupid
+
+# tail /var/log/yum.log
+# yum history
+Loaded plugins: langpacks, product-id, subscription-manager
+ID     | Login user               | Date and time    | Action(s)      | Altered
+-------------------------------------------------------------------------------
+     7 | root <root>              | 2018-10-12 21:16 | Install        |    1
+     6 | root <root>              | 2018-10-12 21:14 | Install        |    2
+     5 | root <root>              | 2018-10-12 21:13 | Install        |    1  <
+     4 | student <student>        | 2018-07-17 10:01 | Update         |    1 >
+     3 | student <student>        | 2018-07-17 09:09 | Install        |    1
+     2 | student <student>        | 2018-07-17 09:04 | I, U           |   16 EE
+     1 | System <unset>           | 2018-07-17 08:30 | Install        | 1189
+history list
+# yum history undo 6
+
+# yum repolist all                  # Enabled and disabled repositories
+# yum-config-manager --enable rhel-server-rhscl-7-rpms
+# yum repolist 
+# yum-config-manager --disable rhel-server-rhscl-7-rpms
+# yum-config-manager --add-repo="http://d1.fedoraproject.org/pub/epel/7/x86_64/"
+
+/etc/yum.repos.d/d1.fedoraproject.org_pub_epel_7_x86_64_.repo
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+[d1.fedoraproject.org_pub_epel_7_x86_64_]
+name=added from: http://d1.fedoraproject.org/pub/epel/7/x86_64/
+baseurl=http://d1.fedoraproject.org/pub/epel/7/x86_64/
+enabled=0
+gpgcheck=0
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Using GPG keys and digitally signed packages (gpgcheck=1)
+# rpm --import http://d1.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7                          # This key goes to /etc/pki/rpm-gpg
+# yum install http://d1.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-2.noarch.rpm       # This RPM installs /etc/yum.repos.d/*.repo files for EPEL (Extra Packages for Enterprise Linux)
+
+# yum -y --disablerepo=* --enablerepo=epel install cowsay       # Temporarely enable a repo (-y answers 'yes' to any question)
+# yum clean all                                                 # Cleans yum cache. Troubleshooting repos   
+
 KICKSTART
 =========
 
-Unattended Anaconda installations
+Unattended Anaconda installations (or How to make simple things harder)
 
 Doc: /usr/share/doc/pykickstart-*/kickstart-doc.txt
 
@@ -48,7 +1582,7 @@ Doc: /usr/share/doc/pykickstart-*/kickstart-doc.txt
 # Location of the installation media
 url --url="ftp://installserver.example.com/pub/RHEL7/dvd"
 # Repository for additional packages
-repo --name"Custom Packages" --baseurl="ftp://repo.example.com/custom"
+repo --name="Custom Packages" --baseurl="ftp://repo.example.com/custom"
 # Use text mode install
 #text
 # Allow graphical installation to be viewwed via VNC
@@ -73,7 +1607,7 @@ network --device=eth0 --bootproto=dhcp
 # Firewall enabled. allow ssh and cups (printers) incomming trafic
 firewall --enabled --service=ssh,cups
 # Configure for US English and Madrid local time
-lang en_US.utf8
+lang en_US.UTF-8
 keyboard --vckeymap=us --xlayouts='us','us'
 timezoene --utc --ntpservers=time.example.com Europe/Madrid
 # Set root password and auth method
@@ -91,14 +1625,14 @@ firstboot --disbled
 reboot
 
 %packages
-@X Window System	 					# Package group, (@^ environment)
+@X Window System                        # Package group, (@^ environment)
 @GNOME Desktop Environment
 @Graphical Internet
 @Sound and Video
-dhcp									# Individual packages
+dhcp                                    # Individual packages
 chrony
 firewalld
--iptable								# Do not install
+-iptable                                # Do not install
 -ip6tables
 %end
 
@@ -124,9 +1658,9 @@ EOF
 %end
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
-/root/anakonda-ks.cfg 		Script generated by Anaconda according to current system installation
-$ system-config-kickstart 	Graphical utility to create kickstart scripts ($ yum install system-config-kickstart)
-$ ksvalidator				Simple syntax validation of a Kickstart script
+/root/anakonda-ks.cfg       Script generated by Anaconda according to current system installation
+$ system-config-kickstart   Graphical utility to create kickstart scripts ($ yum install system-config-kickstart)
+$ ksvalidator               Simple syntax validation of a Kickstart script
 
 Anaconda --> Press Tab to interrupt the installation and add the ks= parameter with the script location 
 
@@ -136,126 +1670,10 @@ ks=nfs:server:/dir/file
 ks=hd:device:/dir/file
 ks=cdrom:/dir/file
 
-GREP REGULAR EXPRESSIONS
-========================
-
-Doc: regex(7), grep(1)
-
-.			Any character
-^			Line starts with
-$			Line ends with
-\<			Start of word
-\>			End of word
-[<set>]		One of the elements in set
-*			Zero or many times previous item
-\{n\}		Exactly n times previous item. 
-\{n,m\}		At least n time,s at most m times previous item. Both n and m are optional
-\+			Equivalent to \{1,\}. At leats one time previous item
-( )			Group items for multipliers
-
-grep options:
--i 			Case insensitive
--v			Reverse. Lines without the pattern
--r			Recursive on files and dirs
--B n -A n	Display number of lines [B]efore and/or [A]fter each matching line
--e 			Use multiple regular expressions (regex1 OR regex2)
--c			Just count lines with the pattern
--n 			Show the line number of matched lines
-
-VIM TEXT EDITOR
-===============
-
-Doc: vim(1) vim :help
-
-Packages: 
-	vim-minimal 	vi, rvi ...
-	vim-enhanced 	vim, rvim ...
-	vim-X11			gvim
-	
-On COMMAND mode:
---------------------------------------------------------------------------------	
-Ctrl+G 	Display current file information
-Ctrl+N 	Auto complete (using current document text)
-AltGr+Ñ Toggle upper/lower case
-Ctrl+R 	Redo
-u 		Undo
-i 		Insert text -- INSERT --
-a		append text -- INSERT --
-I 		Insert at the begining of the line-- INSERT --
-A		Append at the end of the line -- INSERT --
-R 		Replace mode, characters are replaced one by one -- REPLACE --
-r		Replace a single character (do not enter to replace mode)
-o 		Open new line below current -- INSERT --
-O 		Open new line above current -- INSERT --
-cw		Replace current word
-cc		Replace current line
-c$		Replace to the end of line
-C		Replace to the end of line
-yy		Copy current line to buffer
-yw		Copy current word to buffer
-y$		Copy until end of line to buffer
-dd		Cut current line (to buffer)
-dw		Cut current word (to buffer)
-d$		Cut until end of line (to buffer)
-p 		Paste after cursor
-P 		Paste before cursor
-h		Cursor left 	<
-j		Cursor down 	v 
-k		Cursor up 		^
-l		Cursor right 	>
-w		Move to begining of next word
-b 		Move to begining of previous word
-(		Move to begining of current/previous sentence
-) 		Move to begining of next word
-{		Move to begining of current/previous sentence
-} 		Move to begining of next word
-^		Move to the beginning of the line
-$		Move to the end of the line
-gg		First line of the document
-<n>gg	N-th line of the document
-G 		Last line of the document
-/		Search forward (typed regex)
-?		Search backward (typed regex)
-*		Search forward the word under the cursor	
-n 		Next match
-N 		Previous match
-v		Enter (and exit) visual mode-char selection -- VISUAL --
-Shift+v	Enter (and exit) visual mode-line selection -- VISUAL LINE --
-Ctrl+v  Enter (and exit) visual mode-block selection -- VISUAL LINE --
-
-On EXECUTION mode:
---------------------------------------------------------------------------------	
-:wq		Write and quit
-:x		Save (if changed) and quit
-:w 		Save
-:w <f>	Save to another file
-:q		Quit (not saving)
-:q!		Quit ignoring unsaved changes
-:w!		Force write
-:r <f>	Read file into editor
-:!<cmd>	Run shell command
-:r !<c>	Run command and read output into editor
-:set nu	Show line numbers
-:set nonu Hide line numbers
-:noh	Crear last search highlighted words
-:set invlist Show/hide special characters and end of lines
-:set mouse=a The mouse can move and click on text window
-:set key=<password>	--> Crypt the file using a password 
-:set key= --> Clear encryption password. File is saved as plain text.
-:w !sudo tee % &> /dev/null --> To save a read only file usinf root privileges
-:s/t1/t2	Replace t1 by t2 first occurrence on current line
-:1,100s/t1/t2	Replace t1 by t2 first occurrence on lines 1 to 100
-:%s/t1/t2	Replace t1 by t2 first occurrence on entire file
-:%s/t1/t2/g	Replace t1 by t2 all occurrences on entire file
-:s/t1/&t2	Adds t2 to the first occurrence of t1 on current line
-:/pattern/s/t1/t2/g On all lines containing pattern, replace t1 by t2 all occurrences
-:s/t1/t2/i	Replace t1 by t2 first occurrence on current line case insensitive
-:s/t1/t2/n	Replace t1 by t2 first occurrence on current line dry mode (change nothing)
-
-vim options:
--x <file>			Open a file and encrypt it
--o <file1> <file1> 	Open two files in parallel (vertical)
--O <file1> <file1> 	Open two files in parallel (horizontal)
+Review: https://access.redhat.com/labs/
+             |
+             +---> https://access.redhat.com/labs/kickstartconfig/  --> Tool to generate Kickstart scripts
+     
 
 SCHEDULING TASKS (AT, CRON & ANACRON)
 =====================================
@@ -263,15 +1681,15 @@ SCHEDULING TASKS (AT, CRON & ANACRON)
 Packages: at, cronie
 
 Doc: at(1), /usr/share/doc/at-*/timespec
-	 crond(8), crontab(1), crontab(5)
-	 anacron(8), anacrontab(5)
+     crond(8), crontab(1), crontab(5)
+     anacron(8), anacrontab(5)
 
-Configuration:		
-/etc/at.allow		List of users that can submit 'at' jobs.
-/etc/at.deny		Not used if at.allow exists.  List of users restricted to submit 'at' jobs.
-/etc/cron.allow		List of users that can submit 'cron' jobs.
-/etc/cron.deny		Not used if cron.allow exists.  List of users restricted to submit 'cron' jobs.
-/etc/anacrontab		How anacron run dialy, weekly and monthly jobs
+Configuration:      
+    /etc/at.allow       List of users that can submit 'at' jobs.
+    /etc/at.deny        Not used if at.allow exists.  List of users restricted to submit 'at' jobs.
+    /etc/cron.allow     List of users that can submit 'cron' jobs.
+    /etc/cron.deny      Not used if cron.allow exists.  List of users restricted to submit 'cron' jobs.
+    /etc/anacrontab     How anacron run dialy, weekly and monthly jobs
 
 Launching a scheduled job:
 $ at <TIMESPEC>
@@ -281,25 +1699,25 @@ $ at <TIMESPEC>
 Ctrl+D
 
 Timespec samples:
-now +5min
-teatime tomorrow 		(teatime is 4:00 p.m.)
-noon +4 days
-5pm august 3 2018
+now +15min
+teatime tomorrow        (teatime is 4:00 p.m.)
+noon +7 days
+7pm november 8 2018
 
-$ atq 				# List scheduled jobs (like at -l) and provides JOBNUMBERs
-$ atrm <JOBNUMBER>	# Removes a job from the queue
-$ at -c <JOBNUMBER>	# Details of a particular job (environment and commands)
-
-$ crontab -l 		# List cron jobs for current user
-$ crontab -r		# Remove all jobs from current user
-$ crontab -e		# Edit cron jobs for current user
-$ crontab <file>	# Remove all existing jobs and laod the content of <file>
-# crontab -u <user>	... # Root can perform operations over other users cron jobs
+$ atq                   # List scheduled jobs (like at -l) and provides JOBNUMBERs
+$ atrm <JOBNUMBER>      # Removes a job from the queue
+$ at -c <JOBNUMBER>     # Details of a particular job (environment and commands)
+    
+$ crontab -l            # List cron jobs for current user
+$ crontab -r            # Remove all jobs from current user
+$ crontab -e            # Edit cron jobs for current user
+$ crontab <file>        # Remove all existing jobs and laod the content of <file>
+# crontab -u <user> ... # Root can perform operations over other users cron jobs
 
 User crontab file:
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 SHELL=/bin/bash
-MAIL=user@example.com
+MAILTO=user@example.com
 PATH=/usr/bin:/usr/local/bin:/home/user/bin
 # Example of job definition:
 # .---------------- minute (0 - 59)
@@ -309,9 +1727,9 @@ PATH=/usr/bin:/usr/local/bin:/home/user/bin
 # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
 # |  |  |  |  |
 # *  *  *  *  * command to be executed 
-0	4	* 	*	1-5 		/app/batch/daily-monday-to-friday-4am-batch
-30	0	1	jan,may,sep	*	/app/batch/end-of-quarter-batch 
-*/10 *	* 	* 	*			/app/maintenance/flush-caches-every-10m
+0   4   *   *   1-5         /app/batch/daily-monday-to-friday-4am-batch
+30  0   1   jan,may,sep *   /app/batch/end-of-quarter-batch 
+*/10 *  *   *   *           /app/maintenance/flush-caches-every-10m
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 If day-of-month and day-of-week are both <> * ==> They are interpreted as OR
@@ -321,11 +1739,10 @@ System cron jobs: (In addition to the schema above, they need a user-name before
 /etc/cron.d/*
 
 Scripts that system will run hourly, daily, weekly or monthly:
-/etc/cron.hourly/*				--> lacunched by /etc/cron.d/0hourly 
-/etc/cron.daily/*				-\ 
-/etc/cron.weekly/*				--> anacron
-/etc/cron.monthly/*				-/ 
-
+/etc/cron.hourly/*              --> lacunched by /etc/cron.d/0hourly 
+/etc/cron.daily/*               -\ 
+/etc/cron.weekly/*              --> anacron
+/etc/cron.monthly/*             -/ 
 
 TEMPORARY AND VOLATILE FILES
 ============================
@@ -333,12 +1750,12 @@ TEMPORARY AND VOLATILE FILES
 Doc: systemd-tmpfiles(8), tmpfiles.d(5)
 
 Configuration:
-/etc/tmpfiles.d/*.conf	 
-/run/tmpfiles.d/*.conf	 
-/usr/lib/tmpfiles.d/*.conf	 
+    /etc/tmpfiles.d/*.conf   
+    /run/tmpfiles.d/*.conf   
+    /usr/lib/tmpfiles.d/*.conf   
 
-# systemd-tmpfile --create --remove		# Systemd during boot processs
-# systemd-tmpfile --clean				# Using the timer unit, 15 min after booting and once a day (see sample)
+# systemd-tmpfiles --create --remove    # Systemd during boot processs
+# systemd-tmpfiles --clean              # Using the timer unit, 15 min after booting and once a day (see sample)
 
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 # /usr/lib/systemd/system/systemd-tmpfiles-clean.timer
@@ -358,133 +1775,72 @@ ExecStart=/usr/bin/systemd-tmpfiles --clean
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 File timestamps:
-atime		Last time file was accesse
-mtime		Last time file content was modified (displayed by ls -l)
-ctime		Last time file status was modified (eg. chmod)
+atime       Last time file was accessed
+mtime       Last time file content was modified (date/time displayed by ls -l)
+ctime       Last time file status was modified (eg. chmod)
 
 $ stat <file>
 
-To remove a file/dir, all timestamps must be above the age configured on system-dtmpfiles.
+To remove a file/dir, all timestamps must be above the age configured on systemd-tmpfiles.
 
 Sample configuration file for systemd-tmpfiles:
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 # Clear tmp directories separately, to make them easier to override
-#Type Path  	Mode  UID   GID   Age 	Argument
-d 	  /tmp  	1777  root  root  10d
-d 	  /var/tmp 	1777  root  root  30d
+#Type Path      Mode  UID   GID   Age   Argument
+d     /tmp      1777  root  root  10d
+d     /var/tmp  1777  root  root  30d
 
 # Exclude namespace mountpoints created with PrivateTmp=yes
-#Type Path  	Mode  UID   GID   Age 	Argument
-x 	  /tmp/systemd-private-*
-x 	  /var/tmp/systemd-private-*
-X 	  /tmp/systemd-private-*/tmp
-X 	  /var/tmp/systemd-private-*/tmp
+#Type Path      Mode  UID   GID   Age   Argument
+x     /tmp/systemd-private-*
+x     /var/tmp/systemd-private-*
+X     /tmp/systemd-private-*/tmp
+X     /var/tmp/systemd-private-*/tmp
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
-
-PROCESS PRIORITY
-================
-
-Doc: nice(1)
-
-Normal scheduling policy: SCHED_OTHER (aka SCHED_NORMAL) (displayed as TS on ps/top)
-
-Nice level (priority) default is 0, inherited from parent process.
-
-Only root can set negative nice levels. User can only increase a process nice level.
-
-          +++                                       ---
-NI Nice                        -20 -19 ...  0 ... 18 19 
-PR Top    RT ... -99 ... -3 -2   0   1 ... 20 ... 38 39
-
-$ ps -eo pid,cmd,cls,nice  		#cls --> scheduling policy, nice --> nice level
-
-$ nice mybatch & 				# default nice level is 10
-[2] 12932
-$ nice -n 15 myscript &
-[2] 12936
-$ renice -n 19 12936			# lowest
-$ sudo renice -n -10 $(pgrep 'mybatch')
-
-ACLS
-====
-
-Doc: acl(5), getfacl(1), setfacl(1)
-
-For ext2, ext3 and ext4 filesystems, check mount options (mount -s | grep /dev/part)
-$ mount -o user_xattr,acl /dev/part 	# allow acls for this mount only
-$ tune2fs -o user_xattr,acl /dev/part 	# allow acls for future mounts
-
-RHEL6 does not set this default mount options by default. RHEL7 does.
-ext4 filesystems created by anaconda had been set up with ACLs, even on RHEL6
-
-If file have ACLs, chmod change the mask for the group level permissions
-The following code change grop permissions to rwx in any case
-$ if [ $(getfacl -s $FILE) = '' ] ; then chmod g+rwx $FILE; else setfacl -m -g::rwx $FILE; fi
-
-Mask: Maximum permissions possible for:
-- all named users
-- the group owner
-- all named groups
-
-ACL permission precedence:
-1. user is the owner --> file owner permissions
-2. user matchs a named user --> permissions of the named user restricted by mask
-3. user belongs to file owner group --> file group permissions restricted by mask
-4. user belongs to any of the named groups --> permissions of the named group restricted by mask
-5. Permissions for other
-
-$ getfacl myfile
-$ getfacl file1 | setfacl --set-file=- file2 # Copy ACL from file1 to file2
-$ getfacl -R /dir1 ; setfacl -R --set-file=- # Recover ACLS from a backup location (cp -a)
-
-$ setfacl -m u:user1:rw file1
-$ setfacl -m g:group1:rwx file1
-$ setfacl -m o::- file1
-$ setfacl -n -m g::-					# Do not recompute the mask (-n)
-$ setfacl -m m::rw file1				# Set the mask (==> chmod g=rw file1)
-$ setfacl --set u::rwx,g::-,o::- myfile	# Totally replace ACL
-$ setfacl -R -m u:user1:rwX dir1		# Recursive, x is only given to dirs and files already with x
-$ setfacl -x u:user1,g:group1 file1		# Remove ACL for a named user and a named group
-$ setfacl -k file1						# Remove all default ACLS
-$ setfacl -b file1						# Remove all ACLS (including default)
-$ setfacl -m d:u:user1:rwx dir1			# Set default ACLs for a directory (inheritance)
-$ setfacl -x d:u:user1 dir1				# Remove default ACLs for a directory (inheritance)
 
 SELINUX
 =======
 
-Doc: selinux(8), semanage(8), semanage-fcontext(8), semanage-boolean(8) 
+Packages:   selinux-policy-devel            (Documentation $ man -k _selinux)
+            setroubleshoot-server           (Troubleshooting)
 
-Configuration: /etc/selinux/config
+Doc: selinux(8) semanage(8) semanage-fcontext(8) semanage-boolean(8) 
+     restorecon(8) booleans(8) getsebool(8) setsebool(8)
+     setenforce(1) getenforce(1) selinux_config(5) sealert(8)
 
-Packages: 	selinux-policy-devel			(Documentation $ man -k _selinux)
-			setroubleshoot-server			(Troubleshooting)
+Configuration: 
+    /etc/selinux/config
 
 MAC: Mandatory Access Control --> SELinux
-	- Everything is forbidden, except explicitly allowed
+    - Everything is forbidden, except explicitly allowed
 DAC: Discrectionary Access Control
-	- Everything is allowed, except explicitly forbidden
+    - Everything is allowed, except explicitly forbidden
 
-Mount option 'user_xattr' is required to use SELinux, see note on ACLs section.
+File Systems: Mount option 'user_xattr' is required to use SELinux.
+
+                       /+-------------------------------------------------+\
+:::::::::::::::::::====|| Note: See section `ACLS´ for setting user_xattr ||====:::::::::::::::::::
+                       \+-------------------------------------------------+/
 
 Linux Security Levels
 ---------------------
-Netfilter (firewall)                      | External
+Netfilter (firewall)                      ^ External
 SELinux                                   |
-libwrap (/etc/hosts.allow)                |
+libwrap (eg. /etc/hosts.allow)            |
 xinetd (for services, initd)              | 
 PAM (authentication)                      |
 Application level (eg. /etc/cron.allow)   |
-Permission level (ugo/rwx ACLs)           | Internal
+Permission level (ugo/rwx ACLs)           v Internal
 
 SELinux protects files, directories and ports.
 
                              +-> SELinux context
-			  		         |	    +-> Sensitivity
+                             |      +-> Sensitivity
                              |      | 
 SElinux label: user_u;role_r:type_t:s0:c0 --> Category
 
-SELinux TARGETED (default) policy uses type_t
+SELinux targeted (default) policy uses type_t
+SELinux mls (Multi Level Security protection) policy uses all the fields. Using this policiy you can disallow root to access some parts of the system.
 
 SElinux mode |   Log  | Protect
 -------------+--------+---------
@@ -493,11 +1849,11 @@ permissive   |   Yes  |    -
 disabled     |    -   |    -
 
 $ getenforce
-# setenforce 0 			
-# setenforce Enforcing
-# vim /etc/selinux/config
+# setenforce 0                          # Set mode to Permissive
+# setenforce Enforcing                  # Chages runtime value, not default
+# vim /etc/selinux/config               # Set default. SELINUX=enforcing|permissive|disabled
 
-Kernel parameters (GRUB2 menu): enforcing=0|1 selinux=0|1
+Kernel parameters (GRUB2 menu), overriding for this boot only: enforcing=0|1 selinux=0|1
 selinux=0 ==> disabled
 
 Listing SELinux context
@@ -506,29 +1862,38 @@ Listing SELinux context
 # ps -ZC httpd
 # semanage fcontext -l
 # semanage port -l
-# semanage boolean -l		# Also 'getsebool -a'
-
+# semanage boolean -l                   # Also 'getsebool -a'
 
 Setting SELinux context
 -----------------------
-# chcon -t httpd_sys_content_t /web		# Deprecated
+# chcon -t httpd_sys_content_t /web     # Deprecated
 # semanage fcontext -a -t httpd_sys_content_t "/web(/.*)?"
 # restorecon -FRvv /web
 
 SELinux booleans
 ----------------
 
-Booleans have 2 stattus: current + on-boot
+Booleans have 2 statuses: current + on-boot
 
-# getsebool -a								
+# getsebool -a                              
 # semanage boolean -l
-# getsebool httpd_enable_homedirs			
+# getsebool httpd_enable_homedirs           
 # semanage boolean -l | grep 'httpd_enable_homedirs'
-# setsebool httpd_enable_homedirs on					# Change only current value
-# setsebool -P httpd_enable_homedirs on					# Change only on-boot value
-# semanage boolean -m --on httpd_enable_homedirs		# Change current and on-boot
-# semanage boolean -m -0 httpd_enable_homedirs			# --on | -1   --off | -0
-# semanage boolean -l -C								# List booleans with non-default settings
+# setsebool httpd_enable_homedirs on                    # Change only current value
+# setsebool -P httpd_enable_homedirs on                 # Change also on-boot value (make modification persistent)
+# semanage boolean -m --on httpd_enable_homedirs        # Change current and on-boot
+# semanage boolean -m -0 httpd_enable_homedirs          # --on | -1   --off | -0
+# semanage boolean -l -C                                # List booleans with non-default settings
+
+                       /+-------------------+\
+:::::::::::::::::::====|| BEWARE OF SELINUX ||====:::::::::::::::::::
+                       \+-------------------+/
+
+With SELinux enforcing, there is a critical difference between copying vs. moving files.
+- Move (mv) will keep unchaged original SELinux labels and restorecon will be required to rebuild labels according to current policy on destination.
+- Copy (cp) will set the labels according to current policy on destination.
+
+# mv ~/myweb-project/*.html /var/www/html               # Does not have the desired effect
 
 Troubleshooting SELinux
 -----------------------
@@ -536,97 +1901,137 @@ Troubleshooting SELinux
 SELinux violations: /var/log/audit/audit.log --> 'type=AVC' entries
 /var/log/messages --> Violation summary, including UUID
 
-# sealert -a /var/log/audit/audit.log
-# sealert -l UUID
+# yum install setroubleshoot-server                     # To use sealert
+# sealert -a /var/log/audit/audit.log                   # All violations
+# sealert -l UUID                                       # One single alert. sealert suggest how to fix it
 
-LDAP, KERBEROS, AD, IPA - NETWORK DEFINED USERS AND GROUPS
-==========================================================
+# yum install selinux-policy-devel
+# sepolicy manpage -a -p /usr/share/man/man8            # Deploy man pages 
+# mandb                                                 # Reuild man database   
+# man -k _selinux                                       # All subsystems integrated with selinux (827)
 
-- Account information: LDAP (protocol); IPA, Active Directory AD (products)
-- Authentication information: LDAP, Kerberos (protocols); IPA, Active Directory AD (products)
+USING VIRTUALIZED SYSTEMS
+=========================
 
-Doc: authconfig(8), ipa-client-install(1), sssd(8), realm(8)
+Doc: virsh(1) virt-manager(1)
 
-LDAP-Kerberos authconfig
-------------------------
+Packages: qemu-kvm qemu-img
+          virt-manager libvirt libvirt-python python-virtinst libvirt-client
 
-Configuration: (all files managed by authconfig)
-	/etc/openldap/ldap.conf
-	/etc/krb5.conf
-	/etc/sssd/sssd.conf
-	/etc/nswitch.conf
-	/etc/pam.d/*
-	/etc/openldap/cacerts/
-	
-Packages: 	sssd				# required
-			authconfig			# required, usually installed
-			authconfig-gtk		# only required for system-config-authentication
-			krb5-workstation	# higly recommended
+Configuration:
 
-# authconfig-tui	# curses
-# system-config-authentication	# graphical (authconfig-gtk)
+RHV: Red Hat Virtualization
+libvirt: Open source virtualization platform (Project https://libvirt.org/)
 
-# authconfig --enableldap --disableldapauth --ldapserver=ldapserver.example.com --ldapbasedn="dc=example,dc=com" --enableldaptls --ldaploadcacert=http://ldapserver.example.com/pub/certs/example-ca.cert \
-             --enablekrb5 --krb5kdc=krb5kdc.example.com --krb5adminserver=krb5admin.example.com --krb5realm=EXAMPLE.COM \ 
-			 --enablesssd --enablesssdauth --enablemkhomedir \
-			 --update
-  
-$ getent passwd <network-user>
-$ ssh <network-user>@localhost
+KVM: Kernel-based Virtual Machine --> Hypervisor. This is built into the linux kernel. KVM is the foundation of the virtualization technology.
 
-IPA Server
-----------
+Levels (all using KVM):
+1. Physical systems
+2. Red Hat [Enterprise] Virtualization (RHV): (RHEV-H Hypervisor)* --> RHEV-M Manager
+3. RHEL Openstack platform: private cloud. Managed by Openstack dashboard (horizon) or Red Hat CloudForms.
+4. Openstack in public cloud. Managed by Horizon or Red Hat CloudForms.
+5. Hybrid cloud. RHEV + Openstack + VMware
 
-Packages: ipa-client
+Physical System as a Virtualization Host (level 1)
+--------------------------------------------------
 
-# ipa-client-install 
-Discovering was successfull!
-...
-User authorized to enroll computers: admin
-...
-Password for admin@DOMAIN0.EXAMPLE.COM: redhat123
-...
+System requirements:
+- CPU: 1 core/hyperthread for the host + Max number of virtual CPUs to support
+- RAM: 2GB for the host + RAM Assigned to VMs (can be overcommited)
+- Disk: 6GB for the host + Storage requirements for VMs (can be overcommited using thin provisioning)
+- CPU flags: 
+    - Intel: vmx lm
+    - AMD: svm lm
+    
+# grep '^flags' /proc/cpuinfo | head -1     # Get current CPU flags
 
-Active Directory
-----------------
+lm  ==> 64 bits architecture
+vmx ==> Hardware virtualization (Intel)
+svm ==> Hardware virtualization (AMD)
 
-Packages: realm, sssd
+Red Hat Enterprise Virtualization Hypervisor (RHEV-H) requires also 'nx' (No eXecute) flag.
 
-# realm discover domain.example.com
-# realm join domain.example.com				# Use --user if Administrator is not your loging to AD
-# realm permit --realm domain.example.com --all 
-# realm permit --realm domain.example.com DOMAIN\\aduser1 DOMAIN\\aduser2 
+# yum install qemu-kvm qemu-img             # required
+# yum install virt-manager libvirt libvirt-python python-virtinst libvirt-client    # recommended       
+    
+# yum groupinstall 'Virtualization Host'    # This environment can be selected on anaconda
 
+$ virt-manager                              # Graphical tool
+$ virt-viewer myvm                          # View VM console on GNOME window
+
+$ virsh                                     # CLI - Interactive if no arguments are passed
+# virsh nodeinfo                            # Information of the host
+# virsh list -all                           # Running and not running
+# virsh start myvm                          # VM == domain
+# virsh uri
+quemu:///system
+# virsh connect qemu:///system
+# virsh destroy myvm                        # Shutdown VM (power off)
+# virsh shutdown myvm                       # Gracefully shutdown VM 
+# virsh reboot myvm                         
+
+# virsh define myvm.xml                     # Defines a VM from an XML file
+# virsh undefine myvm                       # Removes the VM definition
+# virsh create myvm.xml                     # define + start
+# virsh edit myvm                           # for next boot, edit the XML file definition
+# virsh dumpxml myvm > myvm2.xml            # Extract current definition to an XML
+# virsh console myvm
+# virsh screenshot myvm screen001.ppm       # Takes a screenshot of the console
+# virsh autostart myvm                      # On system boot
+
+Creating a new VM from the command line (1 CPU, RAM 2GB, Disk 6GB, CDROM) [Launch in graphical environment or virt-viewer myvm]
+# virt-install --name myvm --memory 2048 --vcpus 1 --network default --cdrom CentOS-7-x86_64-DVD-1804.iso --disk /var/lib/libvirt/images/myvm.qcow2,size=6 
+
+/usr/lib/libvirt/images/ --> VM images (disks) location
+
+
+     _____ _                             
+    /  ___| |                            
+    \ `--.| |_ ___  _ __ __ _  __ _  ___ 
+     `--. \ __/ _ \| '__/ _` |/ _` |/ _ \
+    /\__/ / || (_) | | | (_| | (_| |  __/
+    \____/ \__\___/|_|  \__,_|\__, |\___|
+                               __/ |     
+                              |___/      
+        
+
+        
 DISK PARTITIONS AND FILE SYSTEMS
 ================================
 
-Doc:  fdisk(8), gdisk(8), mkfs(8), fstab(5), mount(8), blkid(8)
+Doc:  fdisk(8), gdisk(8), mkfs(8), fstab(5), mount(8), blkid(8), du(1), df(1), lsblk(8), mkswap(8), swapon(8)
 
 Configuration:
-/etc/fstab
+    /etc/fstab
 
-# fdisk /dev/disk
-# gdisk /dev/disk
-# partprobe /dev/disk
+# fdisk /dev/disk                           # MBR partition scheme (BIOS)
+# gdisk /dev/disk                           # GPT partition scheme (UEFI)
+# partprobe /dev/disk                       # Re-read partition table (to kernel)
 
 # mkfs -t xfs /dev/part1
 # mkfs -t ext4 /dev/part2
 
 # mount /dev/part1 /mnt
 # mount | grep part1
-# mount -a
+# mount -a                                  # Mounts FS according to /etc/fstab. DO NOT MOUNT SWAP partitions (swapon -a)
 
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 # /etc/fstab
-/dev/sda1 									/  		xfs     defaults		1 1
-UUID=1e9a1a33-559e-4f99-8120-8cdfc842df17 	/boot   xfs     defaults		1 2
-/dev/sda3 									swap    swap    defaults,pri=1	0 0
+/dev/sda1                                   /       xfs     defaults        1 1
+UUID=1e9a1a33-559e-4f99-8120-8cdfc842df17   /boot   xfs     defaults        1 2
+/dev/sda3                                   swap    swap    defaults,pri=1  0 0
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 $ findfs UUID=1e9a1a33-559e-4f99-8120-8cdfc842df17 
-$ ls -l /dev/disk/by-uuid
 # blkid
+$ ls -l /dev/disk/by-uuid   # Similar to blid
 $ lsblk
+
+$ df -h                     # Free space
+$ du -h -d 1 .              # Disk usage
+
+# lsof /mnt                 # Open files (will prevent to umount a device)
+# umount /mnt
 
 SWAP space
 ----------
@@ -634,10 +2039,10 @@ SWAP space
 Type 82 Linux Swap
 
 # mkswap /dev/part3
-$ free						# Memory usage status
-$ swapon 					# Display current swap space  
-# swapon -p 1 /dev/part3	# Activate and set priority 1 (higher than -1)
-# swapon -a 				# /etc/fstab
+$ free                      # Memory usage status
+$ swapon                    # Display current swap space  
+# swapon -p 1 /dev/part3    # Activate and set priority 1 (higher than -1)
+# swapon -a                 # swap entries from /etc/fstab
 
 LVM - LOGICAL VOLUME MANAGER
 ============================
@@ -647,16 +2052,18 @@ Doc: lvm(8)
 Default: 1 extent = 4MB --> Defined at the volume group level (-s 32)
 
 Creating ...
+# fdisk /dev/disk
 # pvcreate /dev/part1 /dev/part2
-# vgcreate -s 32 vg0 /dev/part1 /dev/part2
-# lvcreate -n lvol0 -L 512M vg0		# 512 MiB	
-# mkfs -t ext4 /dev/mapper/vg0-lvol0 # Alternatively /dev/vg0/lvol0
+# vgcreate -s 32 vg0 /dev/part1 /dev/part2  # 32MB extents
+# lvcreate -n lvol0 -L 512M vg0             # 512 MiB   
+# mkfs -t ext4 /dev/mapper/vg0-lvol0        # Alternatively /dev/vg0/lvol0
 # mkdir /mnt/data 
 # mount /dev/mapper/vg0-lvol0 /mnt/data
 
-# lvcreate -n lvol1 -l 32 vg0		# 32 extents (32 * 32 MiB = 1 GiB)
-# lvcreate -n lvol2 -l 30%FREE vg0	
-# lvcreate -n lvol3 -l 30%VG vg0	
+# lvcreate -n lvol1 -l 32 vg0               # 32 extents (32 * 32 MiB = 1 GiB)
+# lvcreate -n lvol2 -l 30%FREE vg0          # 30% of the free space on the Volume Group
+# lvcreate -n lvol3 -l 30%VG vg0            # 30% of the Volume Group
+# lvcreate -n lvol4 -L 3G vg0               # Exact length in GiB
 
 Listing ...
 # pvs
@@ -675,12 +2082,12 @@ Removing ...
 # pvremove /dev/part1 /dev/part2
 
 Extending ...
-# fdisk || gdisk || parted # Create /dev/part3
+# fdisk || gdisk || parted          # Create /dev/part3
 # pvcreate /dev/part3
 # vgextend vg0 /dev/part3
-# lvextend -r -L +5G /dev/vg0/lvol0 # Also extends the filesystem
-# xfs_grofs /mnt/data				# Manually extend an XFS file system
-# resize2fs /dev/vg0/lvol0			# Manually extend an ext2/ext3/ext4 file system
+# lvextend -r -L +5G /dev/vg0/lvol0 # Also extends the filesystem (-r)
+# xfs_growfs /mnt/data              # Manually extend an XFS file system
+# resize2fs /dev/vg0/lvol0          # Manually extend an ext2/ext3/ext4 file system
 
 Shrinking ...
 # pvmove /dev/part3
@@ -698,24 +2105,26 @@ LV Snapshots ...
 # lvcreate -s -n snap0 /dev/mapper/vg0-lvol0 -L 50M
 ... changes occur on /mnt/data
 # umount /mnt/data
-# mount -o ro /dev/mapper/vg0-lvol0 /mnt/repair
+# mount -o ro /dev/mapper/vg0-snap0 /mnt/repair
 ... check that snapshot is correct. Commit/Rollback?
 # umount /mnt/repair
-# lvremove /dev/mapper/vg0-snap0	# Commit. Snapshot is no longer required
-# lvconvert --merge vg0/lvol0		# Rollback, snapshot is removed
+# lvremove /dev/mapper/vg0-snap0    # Commit (continue as it is). Snapshot is no longer required
+# lvconvert --merge vg0/snap0       # Rollback (to the situation when the snapshot was created). Snapshot is removed after rolling back.
 # mount -a
 
-NFS - NETWORK FILE SYSTEM
-=========================
+CONSUMING NFS - NETWORK FILE SYSTEM
+===================================
 
 Doc: nfs(5), mount.nfs(8)
 
 Packages: nfs-utils, autofs
 
+Services: nfs nfs-secure autofs
+
 Configuration:
-/etc/fstab
-/etc/auto.master.d/*.aoutofs
-/etc/auto.*
+    /etc/fstab
+    /etc/auto.master.d/*.aoutofs
+    /etc/auto.*
 
 Security options (sec=)
 - none --> nfsnobody
@@ -726,17 +2135,17 @@ Security options (sec=)
 
 krb5, krb5i and krb5p require /etc/krb5.keytab and nfs-secure service
 # yum -y install nfs-utils
-# wget -O /etc/krb5.keytab http://server0.example.com/pub/keytabs/client0.keytab 	# unsecure
+# wget -O /etc/krb5.keytab http://server0.example.com/pub/keytabs/client0.keytab    # unsecure
 # systemctl enable nfs-secure
 # systemctl start nfs-secure
 
 # mkdir -p /mnt/nfs/share1
-# showmount -e server0.example.com 		# Show exports NFSv2 and NFSv3 only
+# showmount -e server0.example.com      # Show exports NFSv2 and NFSv3 only
 # mount -t nfs -o sync,sec=krb5p server0.example.com:/share1 /mnt/nfs/share1
 # vim /etc/fstab
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 # /etc/fstab
-server0.example.com:/share1 	/mnt/nfs/share1    nfs     sync,sec=krb5p 	0 0
+server0.example.com:/share1     /mnt/nfs/share1    nfs     sync,sec=krb5p   0 0
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # mount -a
 
@@ -746,31 +2155,31 @@ Automounting with autofs ...
 # systemctl start autofs
 # vim /etc/auto.master.d/nfs.aoutofs
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-/mnt/nfs/			/etc/auto.nfs
+/mnt/nfs/           /etc/auto.nfs
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # vim /etc/auto.nfs
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-share1				-sync,sec=krb5p		server0.example.com:/share1
+share1              -sync,sec=krb5p     server0.example.com:/share1
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 Automounting direct option ...
 # vim /etc/auto.master.d/direct.aoutofs
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-/-					/etc/auto.direct
+/-                  /etc/auto.direct
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # vim /etc/auto.direct
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-/mnt/nfs/share1		-sync,sec=krb5p		server0.example.com:/share1
+/mnt/nfs/share1     -sync,sec=krb5p     server0.example.com:/share1
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 Automounting home directories ...
 # vim /etc/auto.master.d/homes.aoutofs
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-/home/guests		/etc/auto.homes
+/home/guests        /etc/auto.homes
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # vim /etc/auto.homes
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-*					-sync,sec=krb5p		server0.example.com:/home/guests/&
+*                   -sync,sec=krb5p     server0.example.com:/home/guests/&
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 
 To activate changes:
@@ -779,33 +2188,118 @@ To activate changes:
 Automounting with Systemd ...
 # vim /etc/fstab
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-server0.example.com:/share1		/mnt/nfs/share1		nfs		sync,noauto,x-systemd.automount 		0 0
+server0.example.com:/share1     /mnt/nfs/share1     nfs     sync,noauto,x-systemd.automount         0 0
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # systemctl daemon-reload
-# systemctl restart mnt-nfs-share1.automount
+# systemctl restart mnt-nfs-share1.automount        # From /mnt/nfs/share1 --> mnt-nfs-share1.automount
 
-SAMBA (SMB CIFS)
-================
+PROVIDING NFS FILE STORAGE
+==========================
+
+Doc: nfs(5), exports(5), mount.nfs(8), nfsd_selinux(8)
+
+Packages: nfs-utils
+
+Services: nfs-server nfs-secure-server
+
+Ports: 2049/tcp (service nfs)
+
+Configuration:
+    /etc/exports
+    /etc/esports.d/*.exports
+    /etc/sysconfig/nfs
+
+Services:      | Server             | Client
+---------------+--------------------+------------
+Allways        | nfs-server         |
+With Kerberos  | nfs-secure-server  | nfs-secure
+
+NFS: Network File System. Insecure.
+
+Client user UID ------------------------------> NFS Server user UID (may have a different name)
+Client user UID=0 (root) --- (root squash) ---> NFS Server user nfsnobody
+
+Exports file format samples:
+
+Localdir        AllowedClients(options)                           | Comment
+------------------------------------------------------------------+-------------------------------------------------
+/nfsshare0      desktop0.example.com(rw)                          | Single client
+/nfsshare1      *.example.com(ro,sec=none)                        | All in a domain, read-only, anonymous access
+/nfsshare2      client[0-20]*.example.com                         | Default is ro sec=sys
+/nfsshare3      192.168.1.0/24 2000:472:18:b51::/64               | Clients from these two networks allowed
+/nfsshare4      diskless.example.com(rw,no_root_squash)           | Client root user remains root on the server
+/nfsshare5      *.example.com(rw,sec=krb5p)                       | Using Kerberos encryption
+
+[root@server0 ~]# systemctl start nfs-server
+[root@server0 ~]# systemctl enable nfs-server
+[root@server0 ~]# mkdir /nfsshare
+[root@server0 ~]# echo "/myshare    desktop0(rw)" >> /etc/exports
+[root@server0 ~]# exportfs -r                                       # Reload /etc/exports
+[root@server0 ~]# firewall-cmd --permanent --add-service=nfs
+[root@server0 ~]# firewall-cmd --reload
+
+[root@desktop0 ~]# mkdir /mnt/nfsexport
+[root@desktop0 ~]# mount server0:/myshare /mnt/nfsexport
+
+NFS + Kerberos
+--------------
+
+Assuming that server0 and desktop0 are already connected to Kerberos (authconfig)
+
+[root@server0 ~]# # Obtain /etc/krb5.keytab (Host principal, nfs principal or both) 
+[root@server0 ~]# systemctl start nfs-secure-server
+[root@server0 ~]# systemctl enable nfs-secure-server
+[root@server0 ~]# echo "/secureshare    desktop0(sec=krb5p,rw)" >> /etc/exports
+[root@server0 ~]# exportfs -r                                       # Reload /etc/exports
+
+[root@desktop0 ~]# # Obtain /etc/krb5.keytab for desktop0
+[root@desktop0 ~]# systemctl start nfs-secure
+[root@desktop0 ~]# systemctl enable nfs-secure
+[root@desktop0 ~]# mkdir /mnt/nfssecured
+[root@desktop0 ~]# mount -o krb5p server0:/myshare /mnt/nfssecured
+
+SELinux
+-------
+
+Default context on the client: nfs_t
+
+Client can set SELinux context:
+[root@desktop0 ~]# mount -o context="system_u:object_r:public_content_rw_t:s0" server0:/myshare /mnt/nfssecured
+
+Read only           Read/Write
+------------------------------------------------------------
+nfs_t               nfs_t
+public_content_t    public_content_rw_t + nfsd_anon_write=on
+
+Server can force to export server SELinux labels:
+[root@server0 ~]# vim /etc/sysconfig/nfs
+RPCNFSDARGS="-V 4.2"
+[root@server0 ~]# systemctl restart nfs-server
+[root@server0 ~]# systemctl restart nfs-secure-server
+
+[root@desktop0 ~]# mount -o v4.2 server0:/myshare /mnt/nfssecured
+
+CONSUMING SAMBA (SMB CIFS)
+==========================
 
 Doc: mount.cifs(8), smbclient(1), auto.master(5)
 
-
-Packages: 	cifs-utils			# required
-			autofs				# required for automounting
-			samba-client		# recommended
+Packages:   cifs-utils          # required
+            autofs              # required for automounting
+            samba-client        # recommended
 
 Configuration:
-/etc/fstab
-/etc/auto.master.d/*.aoutofs
-/etc/auto.*
+    /etc/fstab
+    /etc/auto.master.d/*.aoutofs
+    /etc/auto.*
 
 # yum -y install cifs-utils samba-client
 # mkdir -p /mnt/smb/share1
-$ smbclient -L //server0										# What is exported here
-$ smbclient //server0											# Acess server in a FTP-like fashion
+$ smbclient -L //server0                                        # What is exported from server0
+$ smbclient //server0                                           # Acess server in a FTP-like fashion
 smb: \> ...
 smb: \> quit
-# mount -t cifs -o guest //server0/share1 /mnt/smb/share1		# Access as guest
+# mount -t cifs -o guest //server0/share1 /mnt/smb/share1       # Access as guest
 # mkdir -m700 /secure ; tocuh /secure/server0.creds ; chmod 600 /secure/server0.creds
 # vim /secure/server0.creds 
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
@@ -816,7 +2310,7 @@ domain=WORKGROUP
 # mount -t cifs -o sync,credentials=/secure/server0.creds //server0/share1 /mnt/smb/share1
 # vim /etc/fstab
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-//server0/share1	/mnt/smb/share1		cifs	sync,credentials=/secure/server0.creds 		0 0
+//server0/share1    /mnt/smb/share1     cifs    sync,credentials=/secure/server0.creds      0 0
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # mount -a
 
@@ -826,58 +2320,602 @@ Automounting with autofs ...
 # systemctl start autofs
 # vim /etc/auto.master.d/smb.aoutofs
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-/mnt/smb/			/etc/auto.smb
+/mnt/smb/           /etc/auto.smb
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # vim /etc/auto.smb
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-share1				-fstype=cifs,sync,credentials=/secure/server0.creds		://server0/share1
+share1              -fstype=cifs,sync,credentials=/secure/server0.creds     ://server0/share1
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # systemctl restart autofs
 
 Automounting with Systemd ...
 # vim /etc/fstab
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
-//server0/share1		/mnt/smb/share1		cifs		sync,noauto,x-systemd.automount,creds=/secure/server0.creds 	0 0
+//server0/share1        /mnt/smb/share1     cifs        sync,noauto,x-systemd.automount,creds=/secure/server0.creds     0 0
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
 # systemctl daemon-reload
 # systemctl restart mnt-smb-share1.automount
 
+PROVIDING SMB FILE STORAGE
+==========================
 
-TROUBLESHOOTING BOOT PROCESS
-============================
+Doc: samba(7), smb.conf(5), mount.cifs(8), cifscreds(8), samba_selinux(8)
+
+Packages: samba (sever), cifs-utils (clients), samba-client (all)
+
+Services: smb, nmb
+
+Ports: 137/udp 138/udp 139/tcp 445/tcp (service samba)
+
+Configuration:
+    /etc/samba/smb.conf
+
+SMB: Server Message Block, SAMBA, Microsoft Windows file sharing protocol
+
+Workgroup: Server and clients keep their own local users 
+Windows domain: Users are managed by a Domain controller
+
+# yum -y install samba
+# mkdir /smbshare
+# semanage fcontext -a -t samba_share_t '/smbshare(/.*)?'
+# restorecon -FRvv /smbshare
+
+Read only           Read/Write
+------------------------------------------------------------
+samba_share_t       samba_share_t
+public_content_t    public_content_rw_t + smbd_anon_write=on
+
+SMB /etc/samba/smb.conf Configuration:
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+[global]
+        workgroup = WORKGROUP
+        security = user
+        host allow = 192.168.1.0/24     
+        ...
+        ...
+        ...
+        
+[smbshare]      
+        comment = Shared disk 
+        path = /smbshare
+        valid users = @group1, @staff, smbadm
+        writable = no
+        write list = @group1, smbadm
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# testparm                                  # Check /etc/samba/smb.conf
+
+# setsebool -P samba_enable_home_dirs on    # Exporting home directories from SMS server users:
+
+Creating SMB users on server (no-login users):
+# yum -y install samba-client
+# groupadd group1 ; groupadd staff
+# useradd -s /sbin/nologin smbadm ; echo -e "redhat\nredhat" | smbpasswd -a smbadm
+# useradd -s /sbin/nologin -G group1 smbuser1 ; echo -e "redhat\nredhat" | smbpasswd -a smbuser1
+# useradd -s /sbin/nologin -G staff smbuser2 ; echo -e "redhat\nredhat" | smbpasswd -a smbuser2
+# pdbedit -L                                # validate 3 users defined
+
+# systemctl start smb nmb
+# systemctl enable smb nmb
+# firewall-cmd --permanent --add-service=samba
+# firewall-cmd --reload
+
+Multiuser mount (/root/smb.creds credentials for the user with lowest permissions):
+# mount -o multiuser,creds=/root/smb.creds //server0/smbshare /mnt/smb
+
+User at client computer:
+$ cifscreds add server0
+Password: redhat
+$ cd /mnt/smb ; ...
+
+ISCSI BLOCK STORAGE
+===================
+
+Doc: targetcli(8), iscsiadm(8)
+
+Packages: targetcli (server), iscsi-initiator-utils (clients)
+
+Ports: 3260/tcp
+
+Configuration:
+Server:
+    /etc/target/saveconfig.json
+    /etc/target/backup
+Clients:
+    /etc/iscsi/iscsid.conf
+    /etc/iscsi/initiatorname.iscsi          
+
+iSCSI --> SAN: Storage Area Network (disk arrays, block storage)
+
+SCSI bus: obsolete 20m cable limitation
+Fiber channel: wired optical fiber connection bus for disk arrays and servers. Historically better performance.
+iSCSI: SCSI protocol over TCP/IP networks. As of today performance is similar to FC using 100Gb networks.
+    - iSCI driver + TCP/IP stack (NIC)                 | CPU usage ++++++
+    - iSCI driver + TOE (TCP offload  engine) (NIC)    | CPU usage +++
+    - HBA (host bus adapter) --> better performance    | CPU usage +
+    
+iSCIS traffic:
+    - Unenrypted when servers and storage are under the same data center security perimeter
+    - IPSec is used for WAN access (iSCSI and FCoE Fiber channel over Ethernet)
+        * CHAP (Challenge-Handshake Authentication Protocol [user+password])
+
+RHEL iSCSI server: Emulates iSCSI offering files, disks and logical volumnes as block storage devices --> targets
+    - For storage shared among several initiators ==> Use GFS2 file systems
+
+ISCSI concepts:
+- initiator: a client machine consuming storage. It must have a unique name (IQN).
+- target: a storage resource. It must have a unique name (IQN).
+- IQN: iSCSI Qualified Name: iqn.YYYY-MM.com.mydomain:resource-name
+        iqn.2018-09.com.example:desktop0    (initiator)
+        iqn.2018-08.com.example:iscsi-s0d1  (target)
+- ACL: access control lists. Initiators (IQNs) that can access a specific target.
+- LUN: Logical Unit Number. Storage units offered by a target (a remote disk)
+- node: initiators and targets identified by an IQN
+- portal: IP address+port (almost equivalent to node)
+- TGP: Target portal group. Group of portals on the same target. Used to simplify target configuration.
+- discovery: process of querying a iSCSI server for targets present on them
+- login: Authenticate to a target or LUN to start using the deveice as a local disk 
+
+Configure RHEL 7.0 to serve an iSCSI target
+-------------------------------------------
+
+$ yum -y install targetcli
+
+$ lsblk                 # Local disks (even not partitioned)
+$ blkid                 # Block devices (file systems)
+
+
+# targetcli             # Interactive mode. Share partition /dev/sdb1 through iSCSI
+> ls /
+o- / ..................................................................... [...]
+  o- backstores .......................................................... [...]
+  | o- block .............................................. [Storage Objects: 0]
+  | o- fileio ............................................. [Storage Objects: 0]
+  | o- pscsi .............................................. [Storage Objects: 0]
+  | o- ramdisk ............................................ [Storage Objects: 0]
+  o- iscsi ........................................................ [Targets: 0]
+  o- loopback ..................................................... [Targets: 0]
+> cd /backstores/block
+> create disk1 /dev/sdb1
+> cd /iscsi
+> create iqn.2018-09.com.example:target0
+> cd iqn.2018-09.com.example:target0/tpg1/acls
+> create iqn.2018-09.com.example:client0
+> cd ../luns
+> create /backstores/block/disk1
+> cd ../portals
+> delete 0.0.0.0 ip_port=3260                               (if exists)
+> create 192.168.1.99
+> ls /
+o- / ..................................................................... [...]  
+  o- backstores .......................................................... [...]
+  | o- block .............................................. [Storage Objects: 1]
+  | | o- disk1 ...................... [/dev/sdb1 (0 bytes) write-thru activated]
+  | |   o- alua ............................................... [ALUA Groups: 1]
+  | |     o- default_tg_pt_gp ................... [ALUA state: Active/optimized]
+  | o- fileio ............................................. [Storage Objects: 0]
+  | o- pscsi .............................................. [Storage Objects: 0]
+  | o- ramdisk ............................................ [Storage Objects: 0]
+  o- iscsi ........................................................ [Targets: 1]
+  | o- iqn.2018-09.com.example:target0 ............................... [TPGs: 1]
+  |   o- tpg1 ........................................... [no-gen-acls, no-auth]
+  |     o- acls ...................................................... [ACLs: 1]
+  |     | o- iqn.2018-09.com.example:client0 .................. [Mapped LUNs: 1]
+  |     |   o- mapped_lun0 ............................. [lun0 block/disk1 (rw)]
+  |     o- luns ...................................................... [LUNs: 1]
+  |     | o- lun0 ................. [block/disk1 (/dev/sdb1) (default_tg_pt_gp)]
+  |     o- portals ................................................ [Portals: 1]
+  |       o- 192.168.1.99:3260 ............................................ [OK]
+  o- loopback ..................................................... [Targets: 0]
+> exit
+
+$ systemctl restart target
+$ systemctl enable target
+
+$ firewall-cmd --add-port=3260/tcp --permanent
+$ firewall-cmd --reload
+
+$ targetcli /backstores/block create disk2 /dev/dbb2    # Non interactive
+$ targetcli /iscsi/iqn.2018-09.com.example:target0/tpg1/luns create /backstores/block/disk2
+$ targetcli saveconfig                                  # After making all changes
+
+$ targetcli restoreconfig /etc/target/backup/saveconfig-YYYYMMDD-hh:mm:ss.json
+
+Configure access to an iSCSI server
+-----------------------------------
+
+# pkg=iscsi-initiator-utils; rpm -q $pkg || yum install -y $pkg # Install sw if not present 
+# vim /etc/iscsi/initiatorname.iscsi                            # CRITICAL!!!! Set initiator name (iqn.2018-09.com.example:client0)
+
+# systemctl restart iscsi                                       # WARNING!! There is also a unit called iscsid.service
+# systemctl enable iscsi                                        # WARNING!! Only start/stop/enable/disable iscsi.service
+
+# iscsiadm -m discovery -t sendtargets -p server0.example.com   # Discover
+# iscsiadm -m node -T iqn.2018-09.com.example:target0 -l        # Login (create session)
+
+# lsblk                                                         # Find new devices (/dev/sdc)   
+# fdisk /dev/sdc                                                # Create partitions
+# mkfs -t xfs /dev/sdc1                                         # Craete file system
+# mount -t xfs /dev/sdc1 /mnt/iscsi                             # ATTENTION!!! When mounted persistent, use option _netdev (/etc/fstab)
+
+# iscsiadm -m node -T iqn.2018-09.com.example:target0 -u        # Logout
+# iscsiadm -m node -T iqn.2018-09.com.example:target0 -o delete # Forget target
+
+# iscsiadm -m discovery -P 1                                    # Query discovery status
+# iscsiadm -m node -P 1                                         # Query iSCSI nodes
+# iscsiadm -m session -P 3                                      # Query iSCSI sessions
 
 
 
+     _   _      _                      _    _             
+    | \ | |    | |                    | |  (_)            
+    |  \| | ___| |___      _____  _ __| | ___ _ __   __ _ 
+    | . ` |/ _ \ __\ \ /\ / / _ \| '__| |/ / | '_ \ / _` |
+    | |\  |  __/ |_ \ V  V / (_) | |  |   <| | | | | (_| |
+    \_| \_/\___|\__| \_/\_/ \___/|_|  |_|\_\_|_| |_|\__, |
+                                                     __/ |
+                                                    |___/ 
+      
+IPV4 NETWORKING
+===============
 
+Doc: ip-link(8) ip-address(8) ip-route(8) ip(8) ping(8) ss(8) traceroute(8)
+
+              Prefix --> Number of bits of the network part of the address
+              -------
+IPV4 Address: Network + Host --> (32 - Prefix) bits
+
+                                            Prefix(24)         Host(8)
+                                    -------------------------- --------
+Sample IPV4 (CIDR): 192.168.0.10/24 ‭11000000‬ ‭10101000‬ 00000000 00001010 
+           Netmask: 255.255.255.0   11111111‬ 11111111 11111111 00000000 ==> 24 1's (prefix)
+   Network address: 192.168.0.0     ‭11000000‬ ‭10101000‬ 00000000 00000000 (Host part all 0's)
+ Broadcast address: 192.168.0.255   11000000‬ ‭10101000‬ 00000000 11111111 (Host part all 1's)
+ 
+Reserved private IPv4 network ranges
+------------------------------------
+
+Type    Start       End             # of addresses  Sample Net      Sample IP
+------------------------------------------------------------------------------------
+A       10.0.0.0    10.255.255.255       6.777.216  10.0.0.0/8      10.1.1.20/32
+B       172.16.0.0  172.31.255.255       1.048.576  172.25.0.0/16   172.25.10.1/32
+C       192.168.0.0 192.168.255.255         65.536  192.168.1.0/24  192.168.1.1/24 --> Domestic router address (Gateway/DHCP/DNS)
+                                                    |
+                                                    +--> Typical configuration for a domestic router
+                                                    
+# ip -s link show enp0s3                # Statistics of usage of a NIC
+# ping -c3 192.168.1.1                  # ICMP message
+# tracepath www.google.es               # Uses ICMP pcakets
+# traceroute -T www.google.es           # -T Use TCP packets. Might not be installed.
+# ss -tulpan                            # Review open port and sockets listening 
+# netstat -tulpan                       # Same thing. ss is more standard. netstat is legacy
+# lsof -i -P                            # Open connections to Internet/Intranet (-P display ports not services)
+      
+NETWORK MANAGER
+===============
+
+Doc: nmcli(1) nmcli-examples(5) nm-settings(5) hostnamectl(1)
+
+Network Manager: System daemon configuring network interfaces
+
+Device --> Netwoek interface (eth0)
+Connection --> Settings configured for a device
+    * A connection has a name or ID
+    * Only one connection active on each device
+    
+Configuration Files:
+        /etc/sysconfig/network-scripts/ifcfg-<name>
+        /etc/hostname
+        /etc/resolv.conf
+        /etc/hosts
+        /etc/nsswitch.conf      
+        
+Discover current configuration:
+# nmcli dev status
+# nmcli dev show eth0
+# nmcli con show
+# nmcli con show --active
+# ip addr show eth0
+# ip route show
+# cat /etc/resolv.conf
+# nmcli con show "System eth0"
+
+Adding a network connection
+# nmcli con add con-name static-eth0 type ethernet ifname eth0 ipv4 192.168.2.10/24 gw4 192.168.2.1
+# nmcli con mod static-eth0 +ipv4.address "192.168.100.10/24 192.168.100.1"
+# nmcli con mod static-eth0 ipv4.dns 192.168.0.1 ipv4.dns-search example.com
+# nmcli con mod static-eth0 ipv4.mehtod manual
+# nmcli con mod static-eth0 connection.autoconnect yes
+
+# nmcli dev disconnect eth0
+# nmcli con up static-eth0
+
+# vim /etc/sysconfig/network-scripts/ifcfg-static-eth0
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+TYPE=Ethernet
+BOOTPROTO=none
+IPADDR0=192.168.100.10
+PREFIX0=24
+GATEWAY0=192.168.100.1
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+NAME=static-eth0
+UUID=90c02c9a-f2e0-42ac-930f-bee618190e39
+DEVICE=eth0
+ONBOOT=yes
+DNS1=192.168.0.1
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+# nmcli con reload
+
+# nmcli con down stattic-eth0           # Will re-connect last active for this device
+# nmcli con del stattic-eth0
+
+# nmcli net off                         # Disable all interfaces
+
+# hostname                              # From /etc/hostname
+# hostnamectl status                    # very same thing
+# hostnamectl set-hostname server0.example.com
+
+# cat /etc/hosts                        # Local host names database
+# cat /etc/resolv.conf                  # DNS server, default domain
+
+# getent hosts myhost0                  
+# host myhost0
+
+IPV6 NETWORKING
+===============
+
+IPV6 Address is 128 bits length
+
+2001:0db8:0000:0010:0000:0000:0000:0001
+2001:db8:0:10:0:0:0:1
+2001:db8:0:10::1
+
+[2001:0db8:0:10::1]:80                  IPV6 Address + port
+
+Subnets by default /64 (ISPs might use /48)
+
+::1/128         Localhost
+::              Equivalent to 0.0.0.0
+::/0            Default route (equivalent to 0.0.0.0/0)
+2000::/3        Global unicast (networks 2000::/16 to 3fff::/16)
+fd00::/8        Unique local address 
+fe80::/64       Link local addresses
+ff00::/8        Multicast
+
+Link local address:
+
+MAC: 00:11:22:aa:bb:cc
+Link-local address: fe80::211:22ff:feaa:bbcc/64
+(Start with fe80, MAC bit 7 is set (00-->01), ff:fe is inserted in the middle)
+
+One link local address for each interface ==> fe80::211:22ff:feaa:bbcc%eth0 (link local address of eth0)
+
+$ ping6 fe80::abb:ccff:fe11:2233%eth0
+        ------------------------ ----
+        +----Another host -----+  +-->Interface to go through
+
+$ ping ff02::1%eth0             # Multicast to all nodes on the same local link
+$ ping ff02::1:2%eth0           # Multicast to all DHCP serverd on the same local link
+
+IPV6 address:
+- Static (ipv6.mehtod manual): Set one manually 
+- DHCPv6 (ipv6.mehtod dhcp): DHCP server will provide details 
+- SLAAC  (ipv6.mehtod auto): ff02::2 (router solicitation) --> Router returns the wetwork prefix --> Create unique IPV6 address on that network
+
+Adding a network connection
+# nmcli con add con-name static-eth0 type ethernet ifname eth0 ip6 2001:db8:0:1::c000:207/64 gw6 2001:db8:0:1::1 ipv4 192.168.2.10/24 gw4 192.168.2.1
+# nmcli con mod static-eth0 +ipv6.address "2001:db8:0:1::a00:1/64 2001:db8:0:1::1"
+# nmcli con mod static-eth0 ipv6.dns 2001:4860:4860::8888       ipv4.dns 192.168.0.1
+# nmcli con mod static-eth0 ipv6.dns-search example.com         ipv4.dns-search example.com
+# nmcli con mod static-eth0 ipv6.mehtod manual              
+# nmcli con mod static-eth0 connection.autoconnect yes
+
+# ip addr show eth0             # inet6
+# ip -6 route show
+# tracepath6 2001:db8:0:1::c000:200
+# traceroute -6 2001:db8:0:1::c000:200
+
+# ss -A inet -n     | Show both ipv4
+# netstat -46n      | and ipv6 sockets
+
+LINK AGGREGATION AND BRIDGING
+=============================
+
+Teaming
+-------
+
+Teaming runners:
+- broadcast: all packets for all ports
+- roundrobin
+- activebackup
+- loadbalance
+- lacp (link aggregaion control protocol) similar to loadbalance
+
+                      VNIC                     NIC
+               
+                                        +---------------+
+                          +-------------> Network port1 |
+               +-----------------+      +---------------+
+               | Team interface  |
+               +-----------------+      +---------------+
+                          +-------------> Network port2 |
+                                        +---------------+
+
+
+# nmcli con add type team con-name team0 ifname vnic0 fonfig '{"runner":{"name":"loadbalance"}}'
+# nmcli con mod team0 ipv4.addresses 1.2.3.4/24
+# nmcli con mod team0 ipv4.method manual
+# nmcli con add type team-slave con-name team0-slave-eth0 ifname eth0 master team0
+# nmcli con add type team-slave con-name team0-slave-eth1 ifname eth1 master team0
+
+# nmcli dev disconnect vnic0
+# nmcli con up team0
+
+# teamdctl team0 state
+# teaml team0 ports
+# teaml team0 getoption activeport
+# teaml team0 setoption activeport 3
+
+Modify team configuration JSON
+# teamdctl team0 config dump > ./team0.conf
+# vim ./team0.conf
+# nmcli con mod team0 team.config ./team0.conf
+
+Software Bridges
+----------------
+
+Sample usage: share the physical NIC among various Virtual machines
+
+
+# nmcli con add type bridge con-name bridge0 ifname vibr0 ipv4 "172.25.5.100/24"
+# nmcli con add type bridge-slave con-name bridge0-slave-eth0 ifname eth0 master bridge0
+
+# nmcli con add type bridge con-name vibr1 ifname vibr1 ipv4 "172.25.5.101/24"
+# nmcli con add type bridge-slave con-name bridge1-slave-eth0 ifname eth0 master bridge1
+
+# /etc/sysconfig/network-scripts/ifcfg-bridge0
+DEVICE=vibr0
+NAME=bridge0
+TYPE=Bridge
+BOOTPROTO=none
+IPADDR0=172.25.5.100
+PREFIX0=24
+STP=yes
+BRIDGING_OPTS=priority=32768
+
+# /etc/sysconfig/network-scripts/ifcfg-bridge0-slave-eth0
+TYPE=Ethernet
+NAME=bridge0-slave-eth0
+DEVICE=eth0
+ONBOOT=yes
+BRIDGE=bridge0
+
+# brctl show
+
+NETWORK ADDRESS TRANSLATION
+===========================
+
+Masquerading
+------------
+
+      REQUEST                         .  REQUEST
+    +---------------------------+     . +---------------------------+
+    |Source Address |Source Port|     . |Source Address |Source Port|
+    +---------------------------+     . +---------------------------+
+    | 192.168.0.100 | 9951      |     . | 10.15.25.252  | 3045      |                                             SOCKET
+    +---------------------------+     . +---------------------------+                                           +--------+       
+    |Dest. Address  |Dest. Port |     . |Dest. Address  |Dest. Port |                                           | Port   |       
+    +---------------------------+     . +---------------------------+                                           ---------+       
+    | 175.14.200.19 | 80        |     . | 175.14.200.19 | 80        |------------------------------------------>| 80     |       
+    +---------------+-----------+     . +---------------+-----------+                                           +--------+
+                                      .                                                                                            RESPONSE
+    192.168.0.100         192.168.0.1-O-10.15.25.252                                                             175.14.200.19    +---------------------------+
+       Local Host ----------------> ROUTER ---(Change source address from originator to public IP address)-----> Remote Host --+  |Source Address |Source Port|  
+               ^                      +----------------------------+                                                           |  +---------------------------+
+               |                      | PORT MASQUERADING TABLE    |                            +----------------------------+ |  | 175.14.200.19 | 2231      |
+               |                      +----------------------------+                            | PORT MASQUERADING TABLE    | |  +---------------------------+
+               |                      |192.168.0.100:9951 +-> 3045 |                            +----------------------------+ |  |Dest. Address  |Dest. Port |
+               |                      |                   |        |                            |192.168.0.100:9951 <-+ 3045 | |  +---------------------------+
+               |                      |                   |        |                            |                   |        | |  | 10.15.25.252  | 3045      |
+               |                      +-------------------+--------+                            |                   |        | |  +---------------+-----------+
+               |                                                                                +-------------------+--------+ |                  |
+               +---------------------- (Change destination address to the initial originator)--- ROUTER <----------------------+                  |
+                                                                                       192.168.0.1-O-10.15.25.252                                 |
+                                                                                                   .                                              |
+                                                                      RESPONSE                     .                                              |
+                                                                     +---------------------------+ .    SOCKET                                    |
+                                                                     |Source Address |Source Port| .  +--------+                                  |
+                                                                     +---------------------------+ .  | Port   |                                  |
+      SOCKET                                                         | 175.14.200.19 | 2231      | .  ---------+                                  |
+    +--------+                                                       +---------------------------+ .  | 3045   |<---------------------------------+
+    | Port   |                                                       |Dest. Address  |Dest. Port | .  +--------+
+    ---------+                                                       +---------------------------+ .              
+    | 9951   |<------------------------------------------------------| 192.168.0.100 | 9951      | .              
+    +--------+                                                       +---------------+-----------+ .              
+
+    
+[root@router ~]# firewall-cmd --add-masquerade
+[root@router ~]# firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=192.168.0.0/24 masquerade'
+[root@router ~]# firewall-cmd --reload
+
+Port forwarding
+---------------
+
+# firewall-cmd --permanent --zone=public --add-forward-port=port=513:proto=tcp:toport=132:toaddr=192.168.0.254                                              # Forward incoming traffic on port 513 to host 192.168.0.254 port 132
+# firewall-cmd --permanent --zone=public --add-forward-port=port=22:proto=tcp:toport=2222                                                                   # Forward incoming traffic on port 22 (standard SSH) to port 2222 (where sshd is listening)
+# firewall-cmd --permanent --zone=dmz --add-rich-rule='rule family=ipv4 source address=192.168.0.0/24 forward-port port=80 protocol=tcp toport=8080'        # Forward incoming traffic on port 80 from network 192.168.0.0/24 to port 8080 that is where Apache is being configured
+# firewall-cmd --reload
+
+# semanage port -l                                      # List current ports
+# semanege port -a -t http_port_t -p tcp 8080           # Allow HHTP traffic on port 8080 
+# semanege port -a -t ssh_port_t -p tcp 2222            # Allow SSH traffic on port 2222
+# semanege port -d -t ssh_port_t -p tcp 2222            # Disallow SSH traffic on port 2222
+# semanege port -m -t gopher_port_t -p tcp 8080         # Reuse port 8080 for Gopher
+
+Get more info on SELinux:
+# yum install selinux-policy-devel -y 
+# mandb
+# man -k _selinux
 
 FIREWALLD
 =========
 
-Doc: firewalld.zone(5), iptables(),
+Doc: firewalld.zones(5) iptables(8) firewalld-cmd(1) firewall-config(1) firewalld(1)
 
 Packages: firewalld
 
+Services: firewalld
+
 Configuration:
-/etc/firewalld
-/run/firewalld
-/usr/lib/firewalld
+    /etc/firewalld/*
+    /run/firewalld/*
+    /usr/lib/firewalld/* (helpers/  icmptypes/  ipsets/  services/  xmlschema/  zones/)
 
 To choose a zone (and firewall rules):
 1. For each zone: 
-	If Source IP adress is on 'sources:' --> Assign this zone
+    If Source IP adress is on 'sources:' --> Assign this zone
 2. If no zone has been selected,
-	For each zone: 
-		If incoming interface is on 'intefaces:' --> Assign this zone
+    For each zone: 
+        If incoming interface is on 'intefaces:' --> Assign this zone
 3. If no zone has been selected, 
-	Use the default zone 
-	
-To prevent problems, mask conflicting services:	
-# systemctl mask iptables ip6tables ebtables
-		
+    Use the default zone 
+    
++------------------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+---------+
+|ZONE              | trusted   | home      | internal  | work      | public    | external  | dmz       | block     | drop    |
++----------------------------------------------------------------------------------------------------------------------------+
+|all incoming      | yes       | no        | no        | no        | no        | no        | no        | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|ssh               | yes       | yes       | yes       | yes       | yes       | yes       | yes       | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|mdns              | yes       | yes       | yes       | no        | no        | no        | no        | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|ipp|client        | yes       | yes       | yes       | yes       | no        | no        | no        | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|samba|client      | yes       | yes       | yes       | no        | no        | no        | no        | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|dhcp^6|client     | yes       | yes       | yes       | yes       | yes       | no        | no        | no        | no      |
++----------------------------------------------------------------------------------------------------------------------------+
+|ICMP              | accept    | accept    | accept    | accept    | accept    | accept    | accept    | reject    | drop    |
++----------------------------------------------------------------------------------------------------------------------------+
+|block/reject      | accept    | reject    | reject    | reject    | reject    | reject    | reject    | reject    | drop    |
++----------------------------------------------------------------------------------------------------------------------------+
+|masquerade        | no        | no        | no        | no        | no        | yes       | no        | no        | no      |
++------------------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+---------+
+    
+To prevent problems, mask conflicting services: 
+# systemctl mask iptables.service ip6tables.service ebtables.service
+        
 Default services definitions: /usr/lib/firewalld/services/*.xml 
 To customoize a service:
 # cp /usr/lib/firewalld/services/https.xml /etc/firewalld/services/
-# vim /etc/firewalld/services/https.xml	
+# vim /etc/firewalld/services/https.xml 
 <------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
 <?xml version="1.0" encoding="utf-8"?>
 <service>
@@ -886,7 +2924,9 @@ To customoize a service:
   <port protocol="tcp" port="4443"/>
 </service>
 <------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
-# systemctl restart firewalld	
+# systemctl restart firewalld   
+
+# firewall-config                                       # Graphical tool to manage firewalld
 
 # firewall-cmd --get-zones
 # firewall-cmd --get-active-zones
@@ -896,7 +2936,7 @@ To customoize a service:
 # firewall-cmd --list-all --zone=dmz
 # firewall-cmd --list-all-zones
 
-# firewall-cmd --permanent --add-source=10.0.2.100/16 
+# firewall-cmd --permanent --add-source=10.2.0.0/16 
 # firewall-cmd --permanent --change-source=170.250.0.0/24 --zone=trusted 
 # firewall-cmd --permanent --add-interface=eth2
 # firewall-cmd --permanent --change-interface=eth2 --zone=external
@@ -910,6 +2950,602 @@ To customoize a service:
 # firewall-cmd --permanent --remove-port=8080/tcp
 # firewall-cmd --reload
 
-# firewall-cmd --timeout=300 --add-service=httpd		# Rule will die in 5 min
+# firewall-cmd --timeout=300 --add-service=httpd        # Rule will die in 5 min
 
-(Module is incomplete!!!)
+FIREWALL RICH RULES
+-------------------
+
+rule    [source | destination]
+        {service | port | protocol | icmp-block | masquerade | forward-port}
+        {log | audit | accept | reject | drop}
+
+Rules processing order (Direct rules can be inserted at any point):
+1. Port forwarding and masquerading     --> exit if matched
+2. Loging rules                         --> continue reading rules
+3. Reject rules                         --> exit if matched
+4. Accept rules                         --> exit if matched
+5. Services/ports defined for the zone  --> reject if not explicitely allowed
+
+# firewall-cmd --list-rich-rules
+# firewall-cmd --set-default-zone=public
+# firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=192.168.0.0/24 port port=3360 protocol=tcp accept'              # Accept traffic on port 3360/tcp coming from network 192.168.0.0/24
+# firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=192.168.0.0/24 invert=True port port=3360 protocol=tcp reject'  # Reject traffic on port 3360/tcp NOT coming from network 192.168.0.0/24
+# firewall-cmd --permanent --add-rich-rule='rule service name=ftp limit value=2/m accept'                                                   # Allow only 2 new ftp connections per minute
+# firewall-cmd --permanent --add-rich-rule='rule protocol value=esp drop'                                                                   # Drop packets from IPsec esp protocol (any origin)
+# firewall-cmd --permanent --add-rich-rule='rule service name=ssh log prefix="ssh " level="notice" limit value="3/m" accept'                # Accept ssh connection and log a maximum of 3 connections per minute
+# firewall-cmd --reload                                                                                                                     # Load to runtime rules
+# firewall-cmd --permanent --query-rich-rule='rule protocol value=esp drop'
+# firewall-cmd --permanent --delete-rich-rule='rule protocol value=esp drop'
+# firewall-cmd --reload
+# firewall-cmd --timeout=300 --add-rich-rule='rule family=ipv6 source address="2001::db8/64" service name="dns" audit limit value="1/h" reject' # Reject DNS connections from network 2001::db8/64 and log into the audit system (max 1 message/hour)
+
+     _____                                         _____                 _               
+    /  __ \                                       /  ___|               (_)              
+    | /  \/ ___  _ __ ___  _ __ ___   ___  _ __   \ `--.  ___ _ ____   ___  ___ ___  ___ 
+    | |    / _ \| '_ ` _ \| '_ ` _ \ / _ \| '_ \   `--. \/ _ \ '__\ \ / / |/ __/ _ \/ __|
+    | \__/\ (_) | | | | | | | | | | | (_) | | | | /\__/ /  __/ |   \ V /| | (_|  __/\__ \
+     \____/\___/|_| |_| |_|_| |_| |_|\___/|_| |_| \____/ \___|_|    \_/ |_|\___\___||___/
+                                                                                         
+                                                                                         
+                                                                                         
+DNS - DOMAIN NAME SYSTEM
+========================
+
+Doc: host(1), dig(1), RFC 1034, RFC 1035, RFC 2181
+
+Ports: 53/udp (normal), 53/tcp (rarely)
+
+Root domain: .
+Top level domains: 
+    * Generic TLDS: .com .edu .net 
+    * Country code TLDs: .es .us .uk
+Subdomain: lab.example.com
+Zone: Portion of a domain for which a DNS server is authoritative. Entire domain | Some/all subdomains delegated to other nameservers.
+
+$ cat /etc/resolv.conf | grep nameserver
+$ host redhat.com
+$ dig redhat.com
+
+desk10.example.com          dns.example.com                         ns1.redhat.com                f.gtld-servers.net             198.41.0.4  (a.root-servers.net)
+Localhost                   Localdns                                Redhat-dns                    TLD.COM-dns                    Rootserver-A
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+?A redhat.com ------------> Cached? --> NO
+                            @198.41.0.4?NS .com. ------------------------------------------------------------------------------> NS f.gtld-servers.net 
+                            @f.gtld-servers.net?NS redhat.com. ---------------------------------> NS ns1.redhat.com
+                            @ns1.redhat.com?A redhat.com. --------> A 209.132.183.105
+<-------------------------- A 209.132.183.105
+?A redhat.com ------------> A 209.132.183.105 (Cached)
+?A ftp.redhat.com --------> Cached? --> NO
+                            @ns1.redhat.com?A ftp.redhat.com. ----> A 209.132.183.61
+<-------------------------- A 209.132.183.61
+
+DNS Records Samples:
+    
+Owner-name                      TTL     Class   Type    Data                                                            | Comments
+------------------------------------------------------------------------------------------------------------------------+--------------------------------------
+ftp.redhat.com.                 10      IN      A       209.132.183.61                                                  | IPV4 address
+google.com.                     10      IN      AAAA    2a00:1450:4003:809::200e                                        | IPV6 address
+redhat.com.                     2417    IN      NS      ns1.redhat.com.                                                 | Nameserver for a domain
+redhat.com.                     3600    IN      SOA     ns1.redhat.com. noc.redhat.com. 2018091200 300 180 604800 14400 | Start of Authorithy record
+redhat.com.                     3600    IN      MX      5 mx1.redhat.com.                                               | Mail delivery server
+redhat.com.                     3600    IN      TXT     "v=spf1 include:_spf1.redhat.com include:_spf2.redhat.com -all" | Free text record
+server2.example.com             300     IN      CNAME   webapp2.example.com                                             | Alias
+61.183.132.209.in-addr.arpa.    10      IN      PTR     ftp.redhat.com.                                                 | Reverse resolution (dig -x 209.132.183.61)
+_xmpp-server._tcp.gmail.com.    900     IN      SRV     5 0 5269 xmpp-server.l.google.com.                              | Service
+
+$ host -v -t NS redhat.com                      # Find name server
+$ dig redhat.com NS
+
+$ host -v -t A ftp.redhat.com                   # Direct resolution 
+$ dig @ns1.redhat.com ftp.redhat.com ANY        
+
+$ host -v -t PTR 209.132.183.61                 # Reverse resolution
+$ dig -x 209.132.183.61
+
+$ host -v -t SRV _xmpp-server._tcp.gmail.com    # Service query _<service>._<protocol>.<domain>
+$ dig SRV _xmpp-server._tcp.gmail.com   
+
+CACHING NAMESERVER
+------------------
+
+Doc: unbound(8) unbound.conf(5), unbound-control(8)
+
+Packages: unbound
+
+Ports: 53/udp (normal), 53/tcp (rarely)
+
+Configuration:
+    /etc/unbound/unbound.conf
+
+# yum -y install unbound
+# systemctl start unbound
+# systemctl enable unbound
+
+# vim /etc/unbound/unbound.conf
+interface: 0.0.0.0
+access-control: 192.168.1.0/24 allow
+forward-zone:
+    name: "."
+    forward-addr: 8.8.8.8
+domain-insecure: example.com
+
+# unbound-checkconf
+# systemctl restart unbound
+# firewall-cmd --permanent --add-service=dns
+# firewall-cmd --reload
+
+# unbound-control dump_cache > dump.out
+# unbound-control load_cache < dump.out
+# unbound-control flush server0.example.com
+# unbound-control flush_zone example.com
+
+TROUBLESHOOTING DNS
+-------------------
+
+Doc: dig(1) tcpdump(8), 
+
+Packages: syslinux[gethostip]
+
+Configuration:
+    /etc/resolv.conf
+    /etc/nsswitch.conf
+
+# dig host1.example.com                 |
+# getent hosts host1.example.com        |--> If output differs, the problem is not in DNS --> /etc/nsswitch.conf
+# gethostip host1.example.com           |
+
+$ tcpdump -i enp0s3 udp port 53     # Dump trafic related to DNS (port 53/udp)
+
+Response codes:
+- SERVFAIL: Authoritative NS cannot be reached
+- NXDOMAIN: No records found
+- REFUSED: Query rejected by policy restriction
+- NOERROR: Ok
+
+EMAIL SERVICE
+=============
+
+Doc: postconf(5), postconf(1), mail(1)
+    /usr/share/doc/postfix-*/README_FILES/BASIC_CONFIGURATION_README
+    /usr/share/doc/postfix-*/README_FILES/STANDARD_CONFIGURATION_README
+
+Packages: postfix
+
+Ports: 25/tcp (smtp plain text), 587/tcp (smtp TLS)
+
+Configuration:
+    /etc/postfix/main.cf
+    /etc/postfix/master.cf
+
+MUA: Mail User agent - Mail client as mutt or thunderbird
+MDA: Mail Delivery Agent - imap.domain.com (Dovecot, Cyrus)
+MTA: Mail Transport Agent - smtp.domain.com (Postfix)
+
+                                                                            mx.space.net
+                             localhost             smtp.home.org          imap.space.net            localhost
+                         +----------------+      +----------------+      +----------------+     +----------------+
+          Sender +------->   Mail User    +------> Mail Transport +------> Mail Delivery  +----->   Mail User    +------> Recipient
+    From: me@home.org    |   agent MUA    |      |   agent MTA    |      |   agent MDA    |     |   agent MUA    |        you@space.net
+      To: you@space.net  +----------------+      +-+------------^-+      +----------------+     +----------------+
+                            Thunderbird            |  Postfix   |             Dovecot                Outlook
+                                                   |            |
+                                      ?MX space.net|            |MX mx.space.net
+                                                   |            |
+                                                 +-v------------+-+
+                                                 |   Nameserver   |
+                                                 |      DNS       |
+                                                 +----------------+
+                                                    Bind/Unbound
+
+                                                    
+Basic configuration parameters for Postfix (default value):
+1. inet_interfaces (localhost) IPs postfix is listening to 
+2. myorigin ($myhostname) Posted domain appear to come from this domain
+3. relayhost (<blank>) Host sending the e-mails out. [server] ==> suppress MX lookup
+4. mydestination ($myhostname, localhost.$mydomain, localhost) E-mail address (domain) to deliver locally
+5. local_transport (local:$myhostname) How to deliver local e-mail. To disable local delivery --> error: local delivery disabled
+6. mynetworks (127.0.0.0/8 [::1]/128) Networks from which mail is accepted and forwarded to relay host
+
+# postconf                          # Current configuration (all parameters)
+# postconf -d                       # Parameters with default values
+# postconf -n                       # Parameters with custom values
+# postconf myorigin                 # Query a single parameter
+# postconf -e 'myorigin = home.org' # Modify a parameter
+
+# postqueue -p                      # Check if post queue contains something
+# postqueue -f                      # Force delivery of queued messages
+
+POSTFIX NULL-CLIENT CONFIGRUATION
+---------------------------------
+
+A null client relays all mail sent locally to the relay host.
+
+# postconf -e "relayhost=[mx.home.org]"
+# postconf -e "inet_interfaces=loopback-only"
+# postconf -e "mynetworks=127.0.0.0/8 [::1]/128"
+# postconf -e "myorigin=home.org"
+# postconf -e "mydestination="
+# postconf -e "local_transport=error: local delivery disabled"
+# systemctl restart postfix
+
+MARIADB DATABASE SERVER
+=======================
+
+Doc: mysql(1), mysql.server(1), mysqld_selinux(8), mysqladmin(1)
+
+Packages: @mariadb @mariadb-client
+    @mariadb: mariaddb-server, [mariadb-bench], [mariadb-test]
+    @mariadb-client: mariadb, MySQL-python, mysql-connector-odbc, [libdbi-dbd-mysql-MariaDB], [mysql-connector-java], [perl-DBD-MySQL]
+
+Services: mariadb
+
+Ports: 3306/tcp (service mysql)
+
+Configuration:
+    /etc/my.cnf
+    /etc/my.cnf.d/*.cnf
+
+Install MariaDB on the server including all optional packages:
+# yum --setopt=group_package_types=optional groupinstall @mariadb @mariadb-client
+
+# systemctl start mariadb
+# systemctl enable mariadb
+
+# mysql_secure_installation             # At least set a password for root and remove anonymous user accounts
+
+Configuring networking: /etc/my.cnf
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+[mysqld]
+# If skip-networking=1 the server will only allow local connection through the IPC socket defined by socket=
+skip-networking=0
+# If skip-networking<>1, bind-address indicates in which IP addresses the server is listening. Default is :: which means all IPV4 and IPV6 addresses
+bind-address=192.168.1.99
+# Default port is 3306, if changed, add SELinux port context
+#port=3306
+...
+...
+...
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# firewall-cmd --permanent --add-service=mysql
+# firewall-cmd --reload
+
+Basic user management
+---------------------
+
+$ mysql -u root -p
+Enter password: redhat
+> pager less -XFS;
+> show databases;
+> use mysql;
+> show tables;
+> desc user;
+> select * from user;
+
+> create user myappadm@localhost identified by 'redhat';
+> create user myappuser@'%' identified by 'redhat';
+> select host, user, password from mysql.user where user like 'myapp%';
+
+> create database myapp;
+> grant all privileges on myapp.* to myappadm@localhost;
+> grant select, insert, update, delete on myapp.* to myappuser@'%';
+
+> flush privileges;
+
+> show grants for myappadm@localhost;
+> show grants for myappuser@'%';
+
+> revoke all privileges on myapp.* from myappadm@localhost;
+> revoke select, insert, update, delete on myapp.* from myappuser@'%';
+> flush privileges;
+
+> drop user myappadm@localhost;
+> drop user myappuser@'%';
+
+> quit
+
+Backup databases (logical)
+--------------------------
+
+$ mysqldump -u root -p mysql > mysql.$(date +%F-%T).sql
+$ mysqldump -u root -p --all-databases > ServerFull.$(date +%F-%T).sql
+
+To restore use:
+$ mysql -u root -p <  mysql.2018-09-24-06:34:19.sql
+
+Physical backup (LVM snapshot)
+------------------------------
+
+# mysqladmin -u root -p variables | grep datadir            # Location of MariaDB data files (default --> /dev/vg0/mariadb)
+# df /var/lib/mysql                                         # Get the LVM logical volume (eg. /dev/vg0/mariadb --> vg0)
+# vgdisplay vg0 | grep free                                 # Is ther eenought space left?
+# mysql -u root -p
+> flush tables with read lock;                              # Lock tables. No changes allowed.
+> \! lvcreate -L20G -s -n mariadb-backup /dev/vg0/mariadb   # Create LVM snapshot
+> unlock tables;
+> quit
+
+# mkdir /mnt/snapshot
+# mount /dev/vg0/mariadb-backup /mnt/snapshot               # Mount snapshot
+# tar czf mariadb.$(date +%F-%T).tgz /mnt/snapshot          # Copy data. Any backup tool can be used
+# umount /mnt/snapshot
+# lvremove /dev/vg0/mariadb-backup                          # Remove snapshot
+
+
+APACHE WEB SERVER
+=================
+
+Doc: httpd(8) httpd_selinux(8)
+
+Packages: httpd mod_fcgid mod_ssl crypto-utils 
+          @web-server
+
+Services: httpd
+
+Ports: 80/tcp (service hhtp) 443/tcp (service https)
+
+Configuration:
+    /etc/httpd/conf/httpd.conf
+    /etc/httpd/conf.d/*.conf
+
+Basic server configuration: /etc/httpd/conf/httpd.conf
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# Paths are relative to this location
+ServerRoot "/etc/httpd"
+# TCP ports to listen to (one directive per port)
+Listen 80
+Listen 443 https
+# Import configurations from /etc/httpd/conf.modules.d/*.conf (configuration of installed modules)
+Include conf.modules.d/*.conf
+# The http daemon runs under this user/group
+User apache
+Group apache
+# Should anything go wrong, notify this person (webmaster)
+ServerAdmin root@localhost
+# Access is denied to the root (/) of the system. 
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+# Documents served by this web server are here (tipically overriden by VirtualHosts)
+DocumentRoot "/var/www/html"
+# Grant access to /var/www. This could be required to run CGIs, but it is a relaxed configuration
+<Directory "/var/www">
+    AllowOverride None
+    Require all granted
+</Directory>
+# This configuration allows listing the contents of the server as a filesystem. Disallow if this is not the purpose.
+# It also allows to place a .htaccess file with additional server configuration directives. 
+# .htaccess has an impact on performance and it is also a potential problem, but many frameworks require of it to manage friendly URLs
+<Directory "/var/www/html">
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+# Default document. What to serve if a directory name is requested (instead of a document name)
+<IfModule dir_module>
+    DirectoryIndex index.html
+</IfModule>
+# Files like .htaccess will not be served
+<Files ".ht*">
+    Require all denied
+</Files>
+# How to manage logs. Log files and format.
+ErrorLog "logs/error_log"
+LogLevel warn
+<IfModule log_config_module>
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+    <IfModule logio_module>
+      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    </IfModule>
+    CustomLog "logs/access_log" combined
+</IfModule>
+# Individual documents can be coded in other charsets, but this is the default one if not explicitly set by the document
+AddDefaultCharset UTF-8
+# Load config files in the "/etc/httpd/conf.d" directory, if any.
+IncludeOptional conf.d/*.conf
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# systemctl start httpd.service
+# systemctl enable httpd.service
+
+# firewall-cmd --permanent --add-service=http --add-service=https
+# firewall-cmd --reload
+
+Setting a different port (eg. 8080):
+# semanage port -a -t http_port_t -p tcp 8080
+# firewall-cmd --permanent --add-port=8080/tcp
+# firewall-cmd --reload
+
+Serving documents from a non default path (eg. /myweb/pages):
+# semanage fcontext -a -t httpd_sys_content_t '/myweb/pages(/.*)?'
+# restorecon -FRvv /myweb/pages
+
+Allowing write access to the DocumentRoot (eg. users belogin to group webmasters):
+# setfacl -R -m g:webmasters:rwX /var/www/html          # Option 1
+# setfacl -R -m d:g:webmasters:rwx /var/www/html
+# mkdir -p -m 2775 /myweb/pages                         # Option 2
+# chgrp webmasters /myweb/pages                         # remeber to set SELinux content
+
+# journalctl UNIT=httpd.service                         # Troubleshooting
+
+Virtual Hosts
+-------------
+
+- A single Apache server can serve pages from several different domains. 
+- Each domain is configured via a Virtual Host. 
+- There should be a default Virtual Host for any incoming request not matching any domain.
+- Virtual Host configuration is based o sokets (IP address + Port)
+
+Configuration for domain www.example.com, IP 192.168.0.100 on a shared hosting environment:
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/httpd/conf.d/10-www.example.com.conf
+
+<VirtualHost 192.168.0.100:80>
+    ServerName www.example.com
+    ServerAlias example.com
+    DocumentRoot /var/vhosts/www.example.com/httpdocs
+    ServerAdmin webmaster@example.com
+    ErrorLog "/var/vhosts/www.example.com/logs/error_log"
+    CustomLog "/var/vhosts/www.example.com/logs/access_log" combined
+</VirtualHost>
+
+<Directory "/var/vhosts/www.example.com/httpdocs">
+    # Allow webmaster to add site specific configuration (RewriteRule, Redirect, Header, ...) on .htaccess
+    AllowOverride All
+    Options None
+    Require all granted
+</Directory>
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# semanage fcontext -a -t httpd_sys_content_t '/var/vhosts/www.example.com/httpdocs(/.*)?'
+# restorecon -FRvv /var/vhosts/www.example.com/httpdocs
+# systemctl restart httpd.service
+
+Default virtual host definition (/etc/httpd/conf.d/00-default.conf):
+<VirtualHost _default_:80>
+<VirtualHost *:80>
+
+Content from /etc/httpd/conf.d/*.conf is read in alphabetical order, so the default virtual host should be the first file to read.
+
+TLS support (HTTPS)
+-------------------
+
+Packages: mod_ssl crypto-utils 
+
+# genkey www.example.com                            # Self-signed certificate
+  |
+  +--> /etc/pki/tls/private/www.example.com.key     # Private Key
+  |
+  o--> /etc/pki/tls/certs/www.example.com.0.csr     # Only if certificate is going to be signed by a CA
+  |
+  o--> /etc/pki/tls/certs/www.example.com.crt       # Public certificate (if self-signed or once signed by CA)
+  
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/httpd/conf.d/10-www.example.com.conf (cont.)
+
+<VirtualHost 192.168.0.100:443>
+    # Same as before
+    ServerName www.example.com
+    ServerAlias example.com
+    DocumentRoot /var/vhosts/www.example.com/httpdocs
+
+    # Separate set of logs
+    ErrorLog "/var/vhosts/www.example.com/logs/ssl_error__log"
+    TransferLog "/var/vhosts/www.example.com/logs/ssl_access_log" 
+    CustomLog "/var/vhosts/www.example.com/logs/ssl_request_log" \ 
+        "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+    LogLevel warn
+    
+    # SSL specific options
+    SSLEngine on
+    SSLProtocol all -SSLv2 -SSLv3
+    SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    SSLHonorCipherOrder on
+    SSLCertificateFile /etc/pki/tls/certs/www.example.com.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/www.example.com.key   
+
+    # Do not mix HTTP and HTTPS content
+    Header always set Strict-Transport-Security "max-age=15768000"
+
+    # If only HTTPS access is allowed, uncomment these:
+    # <IfModule mod_rewrite.c>
+    #     RewriteEngine on
+    #     RewriteRule ^(/.*)$ https://%{HTTP_HOST}$1 [redirect=301]
+    # </IfModule>
+</VirtualHost>
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Dynamic Web Content - Scripts CGI (Common Gateway Interface)
+------------------------------------------------------------
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/httpd/conf/httpd.conf (cont.)
+# Allow to run CGI scripts from /var/www/cgi-bin. This is relaxed too.
+<IfModule alias_module>
+    ScriptAlias /cgi-bin/ "/var/www/cgi-bin/"
+</IfModule>
+<Directory "/var/www/cgi-bin">
+    AllowOverride None
+    Options None
+    Require all granted
+</Directory>
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# semanage fcontext -a -t httpd_sys_script_exec_t '/var/www/cgi-bin(/.*)?'
+# restorecon -FRvv /var/www/cgi-bin
+# systemctl restart httpd.service
+
+Dynamic Web Content - PHP 
+-------------------------
+
+Packages: php
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+# /etc/httpd/conf.d/php.conf (fragment)
+<FileMatch \.php$>
+    SetHandler application/x-httpd-php
+</FileMatch>
+DirectoryIndex index.php
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+Dynamic Web Content - Python
+----------------------------
+
+Packages: mod_wsgi
+
+<------------------------------------------------------------------------------ BEGIN SAMPLE ------------------------------------------------------------------------------>
+<VirtualHost ...>
+    # Add this for url http[s]://www.example.com/theapp
+    WSGIScriptAlias /theapp/ /var/vhosts/www.example.com/python/theapp.py
+</VirtualHost>
+    
+<Directory "/var/vhosts/www.example.com/python/">
+    AllowOverride None
+    Options None
+    Require all granted
+</Directory>
+<------------------------------------------------------------------------------- END SAMPLE ------------------------------------------------------------------------------->
+
+# semanage fcontext -a -t httpd_sys_content_t '/var/vhosts/www.example.com/python/(/.*)?'
+# restorecon -FRvv /var/vhosts/www.example.com/python/
+# systemctl restart httpd.service
+
+Batabase related configuration
+------------------------------
+
+If database is local nothing needs to be changed, but remote database access requires to activate some SElinux booleans.
+
+The datbase is on a remote host using a standard port:
+# setsebool -P httpd_can_network_connect_db on
+
+The datbase is on a remote host using a non-standard port:
+# setsebool -P httpd_can_network_connect on
+
+          __________________
+         < That's all folks >
+          ------------------
+         \                             .       .
+          \                           / `.   .' "
+           \                  .---.  <    > <    >  .---.
+            \                 |    \  \ - ~ ~ - /  /    |
+                  _____          ..-~             ~-..-~
+                 |     |   \~~~\.'                    `./~~~/
+                ---------   \__/                        \__/
+               .'  O    \     /               /       \  "
+              (_____,    `._.'               |         }  \/~~~/
+               `----.          /       }     |        /    \__/
+                     `-.      |       /      |       /      `. ,~~|
+                         ~-.__|      /_ - ~ ^|      /- _      `..-'
+                              |     /        |     /     ~-.     `-. _  _  _
+                              |_____|        |_____|         ~ - . _ _ _ _ _>
+                   
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<----------------------------------------------------------------------------------------------# END OF CHEATSHEET #---------------------------------------------------------------------------------------------->>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#####################>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ASCII Art:  http://patorjk.com/software/taag/
+            http://asciiflow.com/
+            cowsay (@epel)
